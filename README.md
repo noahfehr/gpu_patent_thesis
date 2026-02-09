@@ -24,6 +24,11 @@ gpu_patent_thesis/
 ### Prerequisites
 
 ```bash
+pip install -r requirements.txt
+```
+
+Or install manually:
+```bash
 pip install requests pandas pyarrow jupyter
 ```
 
