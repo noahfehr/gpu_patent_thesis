@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test script for v2_core_expansion_pipeline functions.
+Test script for v1_pipeline functions.
 This validates the pipeline logic without calling the lens.org API.
 """
 
@@ -158,7 +158,7 @@ def test_directory_structure():
     
     print("\nTesting Directory Structure:")
     
-    base_path = Path(__file__).parent.parent / 'data' / 'patents' / 'v2_core_expansion'
+    base_path = Path(__file__).parent.parent / 'data' / 'patents' / 'v1_core_expansion'
     
     datasets = ['core', 'expansion', 'expansionxvocab']
     subdirs = ['raw', 'parsed', 'text_clean', 'embeddings', 'logs']
@@ -187,9 +187,9 @@ def test_readme_exists():
     
     print("\nTesting Documentation:")
     
-    readme_path = Path(__file__).parent.parent / 'data' / 'patents' / 'v2_core_expansion' / 'README.md'
+    readme_path = Path(__file__).parent.parent / 'data' / 'patents' / 'v1_core_expansion' / 'README.md'
     assert readme_path.exists(), "README.md should exist"
-    print("  ✓ v2_core_expansion/README.md exists")
+    print("  ✓ v1_core_expansion/README.md exists")
     
     # Check that it contains key information
     content = readme_path.read_text()
@@ -208,7 +208,7 @@ def test_readme_exists():
 def main():
     """Run all tests."""
     print("=" * 80)
-    print("V2 CORE EXPANSION PIPELINE - VALIDATION TESTS")
+    print("V1 PIPELINE - VALIDATION TESTS")
     print("=" * 80)
     
     try:
@@ -222,7 +222,7 @@ def main():
         print("✓ ALL TESTS PASSED")
         print("=" * 80)
         print("\nThe pipeline is correctly configured and ready to use.")
-        print("To run the pipeline, execute: jupyter notebook code/v2_core_expansion_pipeline.ipynb")
+        print("To run the pipeline, execute: jupyter notebook code/v1_pipeline.ipynb")
         return 0
         
     except AssertionError as e:

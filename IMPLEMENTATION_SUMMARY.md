@@ -23,10 +23,10 @@ The pipeline was requested for three datasets:
 
 ### Files Created
 
-1. **`code/v2_core_expansion_pipeline.ipynb`** - Jupyter notebook implementing the full pipeline
-2. **`code/v2_core_expansion_pipeline.py`** - Command-line script version
-3. **`code/test_v2_pipeline.py`** - Validation tests for the pipeline
-4. **`data/patents/v2_core_expansion/README.md`** - Comprehensive documentation
+1. **`code/v1_pipeline.ipynb`** - Jupyter notebook implementing the full pipeline
+2. **`code/v1_pipeline.py`** - Command-line script version
+3. **`code/test_v1_pipeline.py`** - Validation tests for the pipeline
+4. **`data/patents/v1_core_expansion/README.md`** - Comprehensive documentation
 5. **Directory structure** - Created all necessary directories with .gitkeep files
 
 ### Features Implemented
@@ -71,7 +71,7 @@ The pipeline was requested for three datasets:
 
 ✅ **Documentation**
 - Main README updated with v2 pipeline info
-- Detailed v2_core_expansion README
+- Detailed v1_core_expansion README
 - Inline code documentation
 - Usage instructions for both notebook and script
 - Dataset relationship diagrams
@@ -104,13 +104,13 @@ The pipeline was requested for three datasets:
 **Option 1: Jupyter Notebook**
 ```bash
 cd code
-jupyter notebook v2_core_expansion_pipeline.ipynb
+jupyter notebook v1_core_expansion_pipeline.ipynb
 ```
 
 **Option 2: Command-Line Script**
 ```bash
 cd code
-python3 v2_core_expansion_pipeline.py
+python3 v1_core_expansion_pipeline.py
 ```
 
 **Option 3: Run Tests**
@@ -122,7 +122,7 @@ python3 test_v2_pipeline.py
 ### Data Output Structure
 
 ```
-data/patents/v2_core_expansion/
+data/patents/v1_core_expansion/
 ├── core/
 │   ├── raw/          # core_YYYYMMDD_HHMMSS.json.gz
 │   ├── parsed/       # core_YYYYMMDD_HHMMSS.parquet
@@ -161,8 +161,8 @@ To use the pipeline:
    ```
 
 3. Run the pipeline (choose one):
-   - Jupyter: `jupyter notebook code/v2_core_expansion_pipeline.ipynb`
-   - CLI: `python3 code/v2_core_expansion_pipeline.py`
+   - Jupyter: `jupyter notebook code/v1_core_expansion_pipeline.ipynb`
+   - CLI: `python3 code/v1_core_expansion_pipeline.py`
 
 The pipeline will:
 - Fetch core patents (9 CPC codes)

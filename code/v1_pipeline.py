@@ -2,12 +2,12 @@
 """
 GPU Patent Data Pipeline v2: Core, Expansion, and ExpansionXVocab Datasets
 
-Command-line script version of the v2_core_expansion_pipeline notebook.
+Command-line script version of the v1_pipeline notebook.
 Run this script to fetch and process all three datasets.
 
 Usage:
     export LENS_API_TOKEN="your-api-token"
-    python3 v2_core_expansion_pipeline.py
+    python3 v1_pipeline.py
 """
 
 import os
