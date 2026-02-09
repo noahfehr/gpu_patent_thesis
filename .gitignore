@@ -5,12 +5,24 @@ data/patents/v1_gpu_kw_cpc/text_clean/*
 data/patents/v1_gpu_kw_cpc/embeddings/*
 data/patents/v1_gpu_kw_cpc/logs/*
 
+# v2 pipeline data files
+data/patents/v2_core_expansion/*/raw/*
+data/patents/v2_core_expansion/*/parsed/*
+data/patents/v2_core_expansion/*/text_clean/*
+data/patents/v2_core_expansion/*/embeddings/*
+data/patents/v2_core_expansion/*/logs/*
+
 # Except .gitkeep files
 !data/patents/v1_gpu_kw_cpc/raw/.gitkeep
 !data/patents/v1_gpu_kw_cpc/parsed/.gitkeep
 !data/patents/v1_gpu_kw_cpc/text_clean/.gitkeep
 !data/patents/v1_gpu_kw_cpc/embeddings/.gitkeep
 !data/patents/v1_gpu_kw_cpc/logs/.gitkeep
+!data/patents/v2_core_expansion/*/raw/.gitkeep
+!data/patents/v2_core_expansion/*/parsed/.gitkeep
+!data/patents/v2_core_expansion/*/text_clean/.gitkeep
+!data/patents/v2_core_expansion/*/embeddings/.gitkeep
+!data/patents/v2_core_expansion/*/logs/.gitkeep
 
 # Python
 __pycache__/
