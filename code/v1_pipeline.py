@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-GPU Patent Data Pipeline v2: Core, Expansion, and ExpansionXVocab Datasets
+GPU Patent Data Pipeline v1: Core, Expansion, and ExpansionXVocab Datasets
 
 Command-line script version of the v1_pipeline notebook.
 Run this script to fetch and process all three datasets.
@@ -28,7 +28,7 @@ if not API_TOKEN or API_TOKEN == 'your-api-token-here':
     sys.exit(1)
 
 API_URL = 'https://api.lens.org/patent/search'
-BASE_PATH = Path(__file__).parent.parent / 'data' / 'patents' / 'v2_core_expansion'
+BASE_PATH = Path(__file__).parent.parent / 'data' / 'patents' / 'v1_core_expansion'
 
 # Dataset-specific CPC codes
 CORE_CPC_CODES = [

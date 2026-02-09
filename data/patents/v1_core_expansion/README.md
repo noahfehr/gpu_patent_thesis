@@ -43,7 +43,7 @@ A filtered subset of the Expansion dataset containing only patents that mention 
 
 ## Pipeline Workflow
 
-The `v1_core_expansion_pipeline.ipynb` notebook implements the complete pipeline:
+The `v1_pipeline.ipynb` notebook implements the complete pipeline:
 
 1. **Fetch Core Dataset**
    - Query lens.org API with core CPC codes
@@ -107,14 +107,14 @@ Run the pipeline notebook:
 
 ```bash
 cd code
-jupyter notebook v1_core_expansion_pipeline.ipynb
+jupyter notebook v1_pipeline.ipynb
 ```
 
 Or run the command-line script:
 
 ```bash
 cd code
-python3 v1_core_expansion_pipeline.py
+python3 v1_pipeline.py
 ```
 
 Ensure you have:

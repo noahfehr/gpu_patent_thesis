@@ -104,19 +104,19 @@ The pipeline was requested for three datasets:
 **Option 1: Jupyter Notebook**
 ```bash
 cd code
-jupyter notebook v1_core_expansion_pipeline.ipynb
+jupyter notebook v1_pipeline.ipynb
 ```
 
 **Option 2: Command-Line Script**
 ```bash
 cd code
-python3 v1_core_expansion_pipeline.py
+python3 v1_pipeline.py
 ```
 
 **Option 3: Run Tests**
 ```bash
 cd code
-python3 test_v2_pipeline.py
+python3 test_v1_pipeline.py
 ```
 
 ### Data Output Structure
@@ -161,8 +161,8 @@ To use the pipeline:
    ```
 
 3. Run the pipeline (choose one):
-   - Jupyter: `jupyter notebook code/v1_core_expansion_pipeline.ipynb`
-   - CLI: `python3 code/v1_core_expansion_pipeline.py`
+   - Jupyter: `jupyter notebook code/v1_pipeline.ipynb`
+   - CLI: `python3 code/v1_pipeline.py`
 
 The pipeline will:
 - Fetch core patents (9 CPC codes)
