@@ -110,6 +110,13 @@ cd code
 jupyter notebook v2_core_expansion_pipeline.ipynb
 ```
 
+Or run the command-line script:
+
+```bash
+cd code
+python3 v2_core_expansion_pipeline.py
+```
+
 Ensure you have:
 1. Set the `LENS_API_TOKEN` environment variable
 2. Installed required packages: `pip install -r ../requirements.txt`
