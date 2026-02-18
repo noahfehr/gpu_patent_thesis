@@ -5,13 +5,6 @@ data/patents/v1_core_expansion/*/text_clean/*
 data/patents/v1_core_expansion/*/embeddings/*
 data/patents/v1_core_expansion/*/logs/*
 
-# Except .gitkeep files
-!data/patents/v1_core_expansion/*/raw/.gitkeep
-!data/patents/v1_core_expansion/*/parsed/.gitkeep
-!data/patents/v1_core_expansion/*/text_clean/.gitkeep
-!data/patents/v1_core_expansion/*/embeddings/.gitkeep
-!data/patents/v1_core_expansion/*/logs/.gitkeep
-
 # Python
 __pycache__/
 *.py[cod]
