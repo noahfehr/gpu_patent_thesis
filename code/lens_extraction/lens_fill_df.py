@@ -67,7 +67,21 @@ def lens_fill_df(path_input:str, path_output: str) -> None:
 
         cpc_codes = [str(cpc.get("symbol")) for cpc in patents.get("biblio", {}).get("classifications_cpc", {}).get("classifications", {}) if cpc]
         title = str(patents.get("biblio", {}).get("invention_title", [{}])[0].get("text", {}))
-        claims = [str(claim_text) for claim in patents.get("claims", [{}])[0].get("claims", []) for claim_text in claim.get("claim_text", [])] #it seems that under the first claim dictionary there is always one dictionary. But if it is not this is wrong and should be changed
+        
+        # Improved claims extraction with better error handling
+        claims = []
+        claims_data = patents.get("claims", [])
+        if claims_data and isinstance(claims_data, list) and len(claims_data) > 0:
+            claims_dict = claims_data[0] if claims_data[0] else {}
+            claims_list = claims_dict.get("claims", [])
+            for claim in claims_list:
+                if isinstance(claim, dict) and "claim_text" in claim:
+                    claim_texts = claim.get("claim_text", [])
+                    if isinstance(claim_texts, list):
+                        claims.extend([str(text) for text in claim_texts if text])
+                    elif claim_texts:  # Single claim text as string
+                        claims.append(str(claim_texts))
+        
         abstract = str(patents.get("abstract", [{}])[0].get("text", {}))
         #description = str(patents.get("description", None))
 
