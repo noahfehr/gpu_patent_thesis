@@ -43,7 +43,7 @@ def run_example():
         return
     
     # UPDATE THESE PATHS WITH YOUR ACTUAL FILES
-    csv_input_path = "../../data/patents/v1_core_expansion/core/raw/sw_keyword_35000.csv"  # Your CSV with the headers you listed
+    csv_input_path = "../../data/patents/v1_core_expansion/core/raw/feb25_lens_export.csv"  # Your CSV with the headers you listed
     output_directory = "../../data/patents/v1_core_expansion/core/claims_added"    # Where to save results
     
     # Check if input file exists
