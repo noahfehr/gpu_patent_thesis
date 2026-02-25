@@ -43,8 +43,8 @@ def run_example():
         return
     
     # UPDATE THESE PATHS WITH YOUR ACTUAL FILES
-    csv_input_path = "../../data/patents/v1_core_expansion/core/raw/sw-keyword-1000.csv"  # Your CSV with the headers you listed
-    output_directory = "../../data/patents/v1_core_expansion/core/text_clean"    # Where to save results
+    csv_input_path = "../../data/patents/v1_core_expansion/core/raw/sw_keyword_35000.csv"  # Your CSV with the headers you listed
+    output_directory = "../../data/patents/v1_core_expansion/core/claims_added"    # Where to save results
     
     # Check if input file exists
     if not os.path.exists(csv_input_path):

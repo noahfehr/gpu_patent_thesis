@@ -85,14 +85,14 @@ def create_claims_pipeline(csv_input: str, lens_token: str, output_dir: str):
     print("PATENT CLAIMS EXTRACTION PIPELINE")
     print("="*60)
     
-    # # Step 1: Extract Lens IDs from CSV
-    # print("\nSTEP 1: Extracting Lens IDs from CSV...")
-    # num_ids = extract_lens_ids_from_csv(csv_input, lens_ids_file)
+    # Step 1: Extract Lens IDs from CSV
+    print("\nSTEP 1: Extracting Lens IDs from CSV...")
+    num_ids = extract_lens_ids_from_csv(csv_input, lens_ids_file)
     
-    # # Step 2: Query Lens API for detailed data
-    # print(f"\nSTEP 2: Querying Lens API for {num_ids} patents...")
-    # print("This may take several minutes depending on the number of patents...")
-    # lens_id_extract(lens_token, lens_ids_file, json_output)
+    # Step 2: Query Lens API for detailed data
+    print(f"\nSTEP 2: Querying Lens API for {num_ids} patents...")
+    print("This may take several minutes depending on the number of patents...")
+    lens_id_extract(lens_token, lens_ids_file, json_output)
     
     # Step 3: Process JSON into structured DataFrame with claims
     print("\nSTEP 3: Processing API response into structured DataFrame...")
@@ -101,13 +101,16 @@ def create_claims_pipeline(csv_input: str, lens_token: str, output_dir: str):
     base_path, ext = os.path.splitext(json_output)
     chunk_files = []
     
-    # Find all chunk files
+    # Find all chunk files (they are named with starting indices, not sequential)
+    # Check for files named with chunk starting indices (0, 10000, 20000, etc.)
     chunk_index = 0
+    max_chunk_size = 10000  # Should match the chunk size in lens_id_extract.py
+    
     while True:
         chunk_file = f"{base_path}_{chunk_index}{ext}"
         if os.path.exists(chunk_file):
             chunk_files.append(chunk_file)
-            chunk_index += 1
+            chunk_index += max_chunk_size  # Increment by chunk size, not by 1
         else:
             break
     
