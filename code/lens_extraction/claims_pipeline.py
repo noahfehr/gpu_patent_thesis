@@ -127,6 +127,12 @@ def create_claims_pipeline(csv_input: str, lens_token: str, output_dir: str):
     for i, chunk_file in enumerate(chunk_files):
         print(f"Processing chunk {i+1}/{len(chunk_files)}: {os.path.basename(chunk_file)}")
         lens_fill_df(chunk_file, final_csv)
+        # Remove the intermediate API JSON file written by lens_id_extract
+        try:
+            os.remove(chunk_file)
+            print(f"Removed API data file: {chunk_file}")
+        except Exception as e:
+            print(f"Warning: could not remove {chunk_file}: {e}")
     
     print("\n" + "="*60)
     print("PIPELINE COMPLETED SUCCESSFULLY!")
