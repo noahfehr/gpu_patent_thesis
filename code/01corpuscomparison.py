@@ -152,27 +152,35 @@ class GPUArchitectureLabel(BaseModel):
 
 def classify_gpu_architecture_design(client: OpenAI, patent: PatentText) -> bool:
     prompt = (
-        "You are labeling patents.\n\n"
-        "Task: Decide whether this patent describes GPU architecture design.\n\n"
-
-        "Operational definition:\n"
-        "Return TRUE if the invention introduces or modifies hardware architecture or microarchitecture "
-        "used to execute parallel computation in GPUs or GPU-like accelerators. The key criterion is that "
-        "the inventive contribution concerns hardware structures or hardware execution mechanisms that "
-        "change how computation, data movement, or execution is carried out inside the processor.\n\n"
-
-        "Return FALSE if the contribution is primarily software, algorithmic, or application-level, or if "
-        "the patent describes how workloads are executed on existing GPU hardware rather than introducing "
-        "new hardware mechanisms.\n\n"
-
-        "Decision rule:\n"
-        "- Focus on the inventive contribution described in the claims.\n"
-        "- If the claims introduce or modify internal hardware structures or execution mechanisms used for "
-        "parallel computation, return TRUE.\n"
-        "- If the GPU is mainly the platform on which a method or workload runs, return FALSE.\n\n"
-
-        "Use both the abstract and the claims when available."
-    )
+        "You are classifying patents.\n\n"
+        "Task: Decide whether a patent describes accelerator hardware architecture design.\n\n"
+        "Return TRUE if the invention concerns the design or modification of hardware architecture "
+        "for a massively parallel compute accelerator, such as a GPU, TPU, NPU, AI accelerator, or "
+        "other similar device used for high-throughput parallel computation.\n\n"
+        "Return FALSE otherwise.\n\n"
+        "Operational definition:\n\n"
+        "Return TRUE when the invention introduces or modifies architectural mechanisms inside a "
+        "compute accelerator, including hardware structures that determine how computation, memory "
+        "access, or communication are performed within the device.\n\n"
+        "This includes inventions concerning hardware components such as compute units, execution "
+        "units, processing element arrays, tensor units, schedulers, interconnects, memory "
+        "subsystems, caching mechanisms, register files, pipelines, parallel execution structures, "
+        "hardware support for synchronization, or other architectural mechanisms inside the "
+        "accelerator.\n\n"
+        "Return FALSE when the invention primarily concerns:\n"
+        "• Machine learning algorithms, model architectures, or training/inference techniques\n"
+        "• Software frameworks, compilers, kernels, or runtime systems\n"
+        "• Application-level methods that merely run on GPUs or accelerators\n"
+        "• General-purpose computing methods not tied to accelerator hardware architecture\n"
+        "• Semiconductor fabrication processes, lithography, packaging, or materials engineering\n"
+        "• Circuit-level implementation details that do not affect accelerator architecture\n"
+        "• Cooling, power delivery, or mechanical packaging of hardware\n\n"
+        "Decision rule:\n\n"
+        "Focus on what the patent claims as the inventive contribution.\n\n"
+        "If the novelty lies in how the accelerator hardware itself is structured or operates "
+        "internally, return TRUE.\n\n"
+        "If the accelerator is only a platform used to run an algorithm or system, return FALSE.\n\n"
+        )
 
     content = (
         f"lens_id: {patent.lens_id}\n\n"
@@ -261,7 +269,7 @@ def main():
     for k, s in buckets.items():
         print(f"{k}: {len(s)}")
 
-    N = 20
+    N = 50
     seed = 7
     run_ts = datetime.now(timezone.utc).isoformat()
 
