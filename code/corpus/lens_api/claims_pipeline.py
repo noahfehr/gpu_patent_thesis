@@ -27,8 +27,8 @@ import pandas as pd
 import os
 import argparse
 from dotenv import load_dotenv
-from util_lens_id_extract import lens_id_extract
-from util_lens_fill_df import lens_fill_df
+from lens_api.util_lens_id_extract import lens_id_extract
+from lens_api.util_lens_fill_df import lens_fill_df
 
 
 def extract_lens_ids_from_csv(csv_path: str, output_path: str) -> int:
