@@ -123,35 +123,65 @@ class GPUArchitectureLabel(BaseModel):
 
 def classify_gpu_architecture_design(client: OpenAI, patent: PatentText) -> bool:
     prompt = (
-        "You are classifying patents.\n\n"
-        "Task: Decide whether a patent describes accelerator hardware architecture design.\n\n"
-        "Return TRUE if the invention concerns the design or modification of hardware architecture "
-        "for a massively parallel compute accelerator, such as a GPU, TPU, NPU, AI accelerator, or "
-        "other similar device used for high-throughput parallel computation.\n\n"
-        "Return FALSE otherwise.\n\n"
-        "Operational definition:\n\n"
-        "Return TRUE when the invention introduces or modifies architectural mechanisms inside a "
-        "compute accelerator, including hardware structures that determine how computation, memory "
-        "access, or communication are performed within the device.\n\n"
-        "This includes inventions concerning hardware components such as compute units, execution "
-        "units, processing element arrays, tensor units, schedulers, interconnects, memory "
-        "subsystems, caching mechanisms, register files, pipelines, parallel execution structures, "
-        "hardware support for synchronization, or other architectural mechanisms inside the "
-        "accelerator.\n\n"
-        "Return FALSE when the invention primarily concerns:\n"
-        "• Machine learning algorithms, model architectures, or training/inference techniques\n"
-        "• Software frameworks, compilers, kernels, or runtime systems\n"
-        "• Application-level methods that merely run on GPUs or accelerators\n"
-        "• General-purpose computing methods not tied to accelerator hardware architecture\n"
-        "• Semiconductor fabrication processes, lithography, packaging, or materials engineering\n"
-        "• Circuit-level implementation details that do not affect accelerator architecture\n"
-        "• Cooling, power delivery, or mechanical packaging of hardware\n\n"
-        "Decision rule:\n\n"
-        "Focus on what the patent claims as the inventive contribution.\n\n"
-        "If the novelty lies in how the accelerator hardware itself is structured or operates "
-        "internally, return TRUE.\n\n"
-        "If the accelerator is only a platform used to run an algorithm or system, return FALSE.\n\n"
-        )
+        "You are classifying patents for relevance.\n\n"
+        "Task: Decide whether the patent is relevant to accelerator hardware architecture design.\n\n"
+        "Target category:\n"
+        "A patent is relevant if its claimed inventive contribution is the architecture or microarchitecture "
+        "of a massively parallel compute accelerator, including GPUs, TPUs, NPUs, AI accelerators, vector "
+        "processors, systolic-array accelerators, or other parallel processing devices.\n\n"
+        "Output rule:\n"
+        "Return only TRUE or FALSE.\n\n"
+        "Decision standard:\n"
+        "Return TRUE only if the patent's core claimed contribution is a hardware architectural mechanism "
+        "inside the accelerator itself. Return FALSE otherwise.\n\n"
+        "Count as TRUE when the patent claims one or more of the following inside an accelerator:\n"
+        "- organization or structure of compute units, streaming multiprocessors, cores, tensor units, "
+        "matrix units, vector units, processing elements, or execution pipelines\n"
+        "- scheduling, dispatch, issue, control flow, warp/thread/block management, or synchronization "
+        "implemented as hardware architectural support\n"
+        "- memory hierarchy or data movement mechanisms, including caches, shared memory, scratchpads, "
+        "register files, local memories, memory controllers, prefetching, tiling support, or bandwidth "
+        "management inside the device\n"
+        "- on-chip interconnect, network-on-chip, communication fabric, coherence, arbitration, or routing "
+        "between accelerator components\n"
+        "- architectural support for parallelism, sparsity, quantization, matrix operations, reduction, "
+        "attention, convolution, or other workloads, but only when the novelty is in hardware mechanisms "
+        "of the accelerator\n"
+        "- partitioning, virtualization, multi-tenancy, isolation, or resource allocation, but only when "
+        "implemented as accelerator hardware architecture rather than purely software management\n"
+        "- interaction among accelerator submodules in a way that changes how the hardware executes, stores, "
+        "moves, or coordinates computation\n\n"
+        "Count as FALSE when the patent is primarily about:\n"
+        "- machine learning models, neural network architectures, training methods, inference methods, or "
+        "algorithmic improvements as such\n"
+        "- software, compilers, drivers, kernels, runtimes, APIs, middleware, orchestration, or scheduling "
+        "outside the hardware architecture itself\n"
+        "- application-layer methods in graphics, vision, databases, robotics, networking, or other domains "
+        "that merely run on an accelerator\n"
+        "- general computing systems where an accelerator is only a target, environment, or example use case\n"
+        "- semiconductor fabrication, process technology, lithography, packaging, chip stacking, materials, "
+        "yield, or manufacturing methods\n"
+        "- transistor-level, gate-level, analog, power-delivery, signal-integrity, clocking, or circuit-design "
+        "details unless they clearly change accelerator architecture at the block or subsystem level\n"
+        "- thermal management, cooling, board design, sockets, servers, racks, or mechanical integration\n"
+        "- patents that mention GPUs, TPUs, NPUs, or accelerators only as implementation platforms without "
+        "claiming a hardware architectural change to the accelerator itself\n\n"
+        "Key distinction:\n"
+        "The question is not whether the invention uses an accelerator. The question is whether the invention "
+        "changes the internal hardware architecture of the accelerator.\n\n"
+        "Priority rule:\n"
+        "Focus on the claimed inventive contribution, not on background discussion, example embodiments, or "
+        "application context. If the claims are primarily architectural, return TRUE. If the claims are "
+        "primarily algorithmic, software-defined, manufacturing-related, or system-level without a concrete "
+        "accelerator-internal hardware mechanism, return FALSE.\n\n"
+        "Borderline cases:\n"
+        "- If hardware and software are both discussed, return TRUE only if the novelty clearly resides in "
+        "accelerator-internal hardware architecture.\n"
+        "- If the patent concerns architectural support for a workload such as neural networks, graphics, or "
+        "sparse computation, return TRUE only if the support is implemented through a concrete hardware "
+        "mechanism inside the accelerator.\n"
+        "- If unsure, prefer FALSE.\n"
+    )
 
     content = (
         f"lens_id: {patent.lens_id}\n\n"
@@ -308,5 +338,47 @@ def main():
     out_df = out_df.loc[["a_v1_only", "b_v2_minus_v1", "c_v3_minus_v1_minus_v2", "d_v4_minus_all"]]
     print(out_df.to_string())
 
+def analyze_corpus():
+    """Analyze v5 corpus by sampling 50 patents and classifying them for GPU architecture design."""
+    
+    # Setup
+    client = OpenAI()
+    ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)
+    
+    # Load v5 data
+    v5_path = DATA_DIR / "v5_processed.csv"
+    df = load_df(v5_path)
+    
+    # Sample 50 patents
+    if len(df) < 50:
+        raise ValueError(f"v5 dataset has only {len(df)} patents, need at least 50")
+    
+    sampled_df = df.sample(n=50, random_state=42)
+    
+    results = []
+    for _, row in sampled_df.iterrows():
+        patent = PatentText(
+            lens_id=row[ID_COL],
+            abstract=row[ABSTRACT_COL],
+            claims=row[CLAIMS_COL]
+        )
+        
+        is_gpu_arch = classify_gpu_architecture_design(client, patent)
+        
+        results.append({
+            "lens_id": patent.lens_id,
+            "is_gpu_architecture_design_patent": is_gpu_arch
+        })
+    
+    # Write to JSON
+    output_path = ANALYSIS_DIR / "v5_sample_and_classification.json"
+    with open(output_path, 'w') as f:
+        json.dump(results, f, indent=2)
+    
+    print(f"Analysis complete. Sampled 50 patents from v5, classified {sum(r['is_gpu_architecture_design_patent'] for r in results)} as GPU architecture design patents.")
+    print(f"Results saved to: {output_path}")
+    
+    return output_path
+
 if __name__ == "__main__":
-    main()
+    analyze_corpus()

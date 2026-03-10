@@ -38,7 +38,7 @@ def  lens_id_extract_subset(lens_token, process_chunk, path_output_json):
         'Authorization': 'Bearer ' + lens_token,
         'Content-Type': 'application/json'
     }
-    include = ["lens_id", "jurisdiction", "doc_number", "kind", "date_published","publication_type", "biblio", "families", "claims"]
+    include = ["lens_id", "jurisdiction", "doc_number", "kind", "date_published","publication_type", "biblio", "families", "claims", "abstract"]
     request_body = {
         "query": {
             "terms": {
