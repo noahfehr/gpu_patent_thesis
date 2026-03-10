@@ -1,11 +1,12 @@
 import numpy as np
 import pandas as pd
-from sklearn.decomposition import NMF, LatentDirichletAllocation
 from sklearn.metrics.pairwise import cosine_similarity
+import tomotopy as tp
 import itertools
 import subprocess
 import tempfile
 import os
+from collections import Counter
 # Implemented based on stability metrics outlined here: https://arxiv.org/pdf/2410.23186v2
 # -----------------------------
 # HELPERS (match repo behavior)
@@ -98,81 +99,155 @@ def omega_psych_via_r(X):
         omega_tot_str, sd_mean_str = out.split(",")
         return (float(omega_tot_str), float(sd_mean_str))
 
+def _extract_topic_word_matrix(model, vocab_index):
+    """
+    Extract topic-word probabilities into a fixed global vocabulary space.
+
+    Parameters
+    ----------
+    model : tp.LDAModel
+    vocab_index : dict[str, int]
+        Global token -> column index mapping.
+
+    Returns
+    -------
+    H : np.ndarray of shape (K, V)
+        Topic-word matrix in the fixed vocabulary space.
+    """
+    K = model.k
+    V = len(vocab_index)
+    H = np.zeros((K, V), dtype=float)
+
+    model_vocab = list(model.used_vocabs)
+    if len(model_vocab) == 0:
+        return H
+
+    model_to_global = []
+    for word in model_vocab:
+        model_to_global.append(vocab_index.get(word, -1))
+
+    for k in range(K):
+        topic_dist = np.asarray(model.get_topic_word_dist(k), dtype=float)
+        for j, gidx in enumerate(model_to_global):
+            if gidx != -1:
+                H[k, gidx] = topic_dist[j]
+
+    return H
+
+def _build_fixed_vocab(tokenized_docs, min_df=1):
+    """
+    Build a fixed corpus-wide vocabulary using document frequency.
+
+    Parameters
+    ----------
+    tokenized_docs : list[list[str]]
+        Tokenized documents.
+    min_df : int
+        Keep tokens appearing in at least min_df documents.
+
+    Returns
+    -------
+    vocab_list : list[str]
+        Fixed vocab in deterministic order.
+    vocab_index : dict[str, int]
+        Token -> column index.
+    """
+    df_counter = Counter()
+    for doc in tokenized_docs:
+        for tok in set(doc):
+            df_counter[tok] += 1
+
+    vocab_list = sorted([tok for tok, df in df_counter.items() if df >= min_df])
+    vocab_index = {tok: i for i, tok in enumerate(vocab_list)}
+    return vocab_list, vocab_index
 # -----------------------------
 # MAIN FUNCTION
 # -----------------------------
-def _build_model(method, n_topics, seed, **model_kwargs):
-    """Factory function to build NMF or LDA model."""
-    if method == 'nmf':
-        return NMF(
-            n_components=n_topics,
-            init="nndsvda",
-            random_state=seed,
-            max_iter=500,
-            alpha_W=0,
-            alpha_H=0.3,
-            **model_kwargs
-        )
-    elif method == 'lda':
-        return LatentDirichletAllocation(
-            n_components=n_topics,
-            random_state=seed,
-            learning_method="batch",
-            max_iter=100,
-            doc_topic_prior=0.3,
-            topic_word_prior=0.05,
-            **model_kwargs
-        )
+def _build_model(n_topics, seed, **model_kwargs):
+    return tp.LDAModel(
+        k=n_topics,
+        seed=seed,
+        alpha=0.3,
+        eta=0.05,
+        **model_kwargs
+    )
 
-def _fit_and_extract(model, X, method):
-    """Fit model and extract W (doc-topic) and H (topic-word) matrices."""
-    if method == 'nmf':
-        W = model.fit_transform(X)
-        H = model.components_
-        recon_err = model.reconstruction_err_
-    elif method == 'lda':
-        W = model.fit_transform(X)
-        H = np.exp(model.components_)  # Convert from log-space
-        recon_err = None
-    return W, H, recon_err
-
-def compute_topic_stability(k_values, seeds, X, method='nmf', **model_kwargs):
+def _fit_and_extract(model, tokenized_docs, vocab_index, iterations=100):
     """
-    Compute topic model stability across different k values and random seeds.
+    Fit a tomotopy LDA model and extract W and H.
 
-    Parameters:
-    - k_values: list of int, number of topics to test
-    - seeds: list of int, random seeds for reproducibility
-    - X: sparse matrix, document-term matrix (TF-IDF for NMF, count for LDA)
-    - method: str, 'nmf' or 'lda'
-    - model_kwargs: additional kwargs for the model (NMF or LDA)
+    Parameters
+    ----------
+    model : tp.LDAModel
+    tokenized_docs : list[list[str]]
+    vocab_index : dict[str, int]
+    iterations : int
 
-    Returns:
-    - pd.DataFrame with stability metrics for each k
+    Returns
+    -------
+    W : np.ndarray
+        Document-topic matrix, shape (D, K)
+    H : np.ndarray
+        Topic-word matrix, shape (K, V), in fixed vocab space
     """
-    if method not in ['nmf', 'lda']:
-        raise ValueError("method must be 'nmf' or 'lda'")
+    for doc in tokenized_docs:
+        if doc:
+            model.add_doc(doc)
 
+    model.train(iterations)
+
+    W = np.array([doc.get_topic_dist() for doc in model.docs], dtype=float)
+    H = _extract_topic_word_matrix(model, vocab_index)
+
+    return W, H
+
+def compute_topic_stability(tokenized_docs, k_values, seeds, iterations=100, vocab_min_df=1, **model_kwargs):
+    """
+    Compute LDA topic model stability across different k values and random seeds.
+
+    Parameters
+    ----------
+    tokenized_docs : list[list[str]]
+        Tokenized documents used to fit the model.
+    k_values : list[int]
+        Numbers of topics to evaluate.
+    seeds : list[int]
+        Random seeds for repeated fits.
+    iterations : int, default=100
+        Number of Gibbs sampling iterations per fit.
+    vocab_min_df : int, default=1
+        Minimum corpus document frequency for the fixed comparison vocabulary.
+    model_kwargs :
+        Additional kwargs passed to tp.LDAModel.
+
+    Returns
+    -------
+    pd.DataFrame
+        Stability metrics for each k.
+    """
     results = []
+
+    # Fixed vocab for cross-run comparability
+    vocab_list, vocab_index = _build_fixed_vocab(tokenized_docs, min_df=vocab_min_df)
+    print(f"Fixed comparison vocab size: {len(vocab_list)}")
 
     for n_topics in k_values:
         print(f"\n===== k = {n_topics} =====")
 
-        reconstruction_errors = []
         redundancy_scores = []
         thetas = []
         post_words_list = []
         post_words_ref = None
 
-        # Fit models across all seeds
         for seed in seeds:
-            model = _build_model(method, n_topics, seed, **model_kwargs)
-            W, H, recon_err = _fit_and_extract(model, X, method)
+            model = _build_model(n_topics, seed, **model_kwargs)
+            W, H = _fit_and_extract(
+                model=model,
+                tokenized_docs=tokenized_docs,
+                vocab_index=vocab_index,
+                iterations=iterations
+            )
 
-            if recon_err is not None:
-                reconstruction_errors.append(recon_err)
-
-            # Redundancy: compute cosine similarity of normalized topics
             H_prob = row_normalize(H)
             S = cosine_similarity(H_prob)
             np.fill_diagonal(S, np.nan)
@@ -181,11 +256,9 @@ def compute_topic_stability(k_values, seeds, X, method='nmf', **model_kwargs):
                 "mean_sim": np.nanmean(S)
             })
 
-            # Construct theta and post_words
             theta = row_normalize(W)
             post_words = row_normalize(H)
 
-            # Align to first replication using greedy cosine matching
             if post_words_ref is None:
                 post_words_ref = post_words.copy()
                 thetas.append(theta)
@@ -197,7 +270,6 @@ def compute_topic_stability(k_values, seeds, X, method='nmf', **model_kwargs):
                 thetas.append(theta_aligned)
                 post_words_list.append(post_words_aligned)
 
-        # Compute stability via multidimensional Omega
         K_eff = n_topics - 1
         omega1_vals = []
         omega2_vals = []
@@ -226,9 +298,6 @@ def compute_topic_stability(k_values, seeds, X, method='nmf', **model_kwargs):
         avg_max_sim = np.mean([r["max_sim"] for r in redundancy_scores])
         avg_mean_sim = np.mean([r["mean_sim"] for r in redundancy_scores])
 
-        # Print results
-        if reconstruction_errors:
-            print(f"Avg Reconstruction Error: {np.mean(reconstruction_errors):.4f}")
         print(f"Omega (theta-side):      {omega1:.3f}")
         print(f"Omega (words-side):      {omega2:.3f}")
         print(f"Omega (avg):             {omega_val:.3f}")
@@ -236,8 +305,7 @@ def compute_topic_stability(k_values, seeds, X, method='nmf', **model_kwargs):
         print(f"Avg Max Topic Cosine:    {avg_max_sim:.3f}")
         print(f"Avg Mean Topic Cosine:   {avg_mean_sim:.3f}")
 
-        # Store results
-        result_dict = {
+        results.append({
             "k": n_topics,
             "omega_theta": omega1,
             "omega_words": omega2,
@@ -245,11 +313,6 @@ def compute_topic_stability(k_values, seeds, X, method='nmf', **model_kwargs):
             "omega_se": omega_se,
             "max_cosine": float(avg_max_sim),
             "mean_cosine": float(avg_mean_sim),
-        }
-        if reconstruction_errors:
-            result_dict["recon_error"] = float(np.mean(reconstruction_errors))
-        
-        results.append(result_dict)
+        })
 
-    results_df = pd.DataFrame(results)
-    return results_df
+    return pd.DataFrame(results)
