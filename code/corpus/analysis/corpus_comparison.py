@@ -239,13 +239,12 @@ def evaluate_corpus(version: str, count: int) -> tuple[Path, Path]:
 
     client = OpenAI()
 
-    # df = load_corpus(version)
-    # sampled = sample_patents(df, count)
+    df = load_corpus(version)
+    sampled = sample_patents(df, count)
 
-    # sample_payload = [asdict(p) for p in sampled]
+    sample_payload = [asdict(p) for p in sampled]
     sample_path = ANALYSIS_DIR / f"{version}_sample.json"
-    # write_json(sample_path, sample_payload)
-    sampled = [PatentText(**p) for p in read_json(sample_path)]    
+    write_json(sample_path, sample_payload)
     evaluations = []
     for i, patent in enumerate(sampled, start=1):
         try:
@@ -290,5 +289,5 @@ def evaluate_corpus(version: str, count: int) -> tuple[Path, Path]:
 
 
 if __name__ == "__main__":
-    # evaluate_corpus("v5", 50)
-    compare_classifications("v5")
+    evaluate_corpus("v6", 1000)
+    # compare_classifications("v5")
