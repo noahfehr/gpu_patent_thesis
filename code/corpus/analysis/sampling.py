@@ -135,16 +135,39 @@ def anurag_prep(
         f"Included {len(disagreements)} disagreements and filled to "
         f"{target_pos} positive / {target_neg} negative by model label."
     )
+
 def evaluate(
     version: str,
     source_suffix: str = "_sample_evaluation.json",
     hand_suffix: str = "_even_sample.json",
+    hand_label_key: str = "is_gpu_architecture_design_patent",
+    hand_label_name: str = "human",
+    disagreements_suffix: str | None = None,
 ) -> dict[str, float]:
     """
-    Compare model predictions from {version}_sample_evaluation.json
-    against hand labels in {version}_even_sample.json.
+    Compare model predictions from {version}{source_suffix}
+    against hand labels in {version}{hand_suffix}.
 
-    Returns metrics and prints a summary.
+    Parameters
+    ----------
+    version : str
+        Dataset version prefix, e.g. "v6".
+    source_suffix : str
+        Suffix for model prediction file.
+    hand_suffix : str
+        Suffix for hand-labeled file.
+    hand_label_key : str
+        Key in the hand-labeled file containing the ground-truth label.
+    hand_label_name : str
+        Name used in outputs, e.g. "human" or "anurag".
+    disagreements_suffix : str | None
+        Optional suffix for disagreement output file.
+        If None, defaults to f"_{hand_label_name}_disagreements.json".
+
+    Returns
+    -------
+    dict[str, float]
+        Evaluation metrics and counts.
     """
     source_file = ANALYSIS_DIR / f"{version}{source_suffix}"
     hand_file = ANALYSIS_DIR / f"{version}{hand_suffix}"
@@ -161,13 +184,13 @@ def evaluate(
 
     for row in hand_data:
         lens_id = row.get("lens_id")
-        human_label = row.get("is_gpu_architecture_design_patent")
+        hand_label = row.get(hand_label_key)
 
         if lens_id not in source_by_id:
             missing_ids.append(lens_id)
             continue
 
-        if human_label is None:
+        if hand_label is None:
             unlabeled.append(lens_id)
             continue
 
@@ -178,28 +201,28 @@ def evaluate(
                 f"Model label is None for lens_id={lens_id} in {source_file}"
             )
 
-        if model_label is True and human_label is True:
+        if model_label is True and hand_label is True:
             tp += 1
-        elif model_label is False and human_label is False:
+        elif model_label is False and hand_label is False:
             tn += 1
-        elif model_label is True and human_label is False:
+        elif model_label is True and hand_label is False:
             fp += 1
             disagreements.append(
                 {
                     "lens_id": lens_id,
                     "model_label": model_label,
-                    "human_label": human_label,
+                    f"{hand_label_name}_label": hand_label,
                     "abstract": row.get("abstract"),
                     "claims": row.get("claims"),
                 }
             )
-        elif model_label is False and human_label is True:
+        elif model_label is False and hand_label is True:
             fn += 1
             disagreements.append(
                 {
                     "lens_id": lens_id,
                     "model_label": model_label,
-                    "human_label": human_label,
+                    f"{hand_label_name}_label": hand_label,
                     "abstract": row.get("abstract"),
                     "claims": row.get("claims"),
                 }
@@ -232,7 +255,7 @@ def evaluate(
         "n_unlabeled": len(unlabeled),
     }
 
-    print(f"Evaluation for {version}")
+    print(f"Evaluation against {hand_label_name} labels for {version}")
     print("-" * 40)
     print(f"Evaluated:  {total}")
     print(f"TP:         {tp}")
@@ -246,7 +269,10 @@ def evaluate(
     print(f"Missing IDs:{len(missing_ids)}")
     print(f"Unlabeled:  {len(unlabeled)}")
 
-    disagreements_file = ANALYSIS_DIR / f"{version}_disagreements.json"
+    if disagreements_suffix is None:
+        disagreements_suffix = f"_{hand_label_name}_disagreements.json"
+
+    disagreements_file = ANALYSIS_DIR / f"{version}{disagreements_suffix}"
     write_json(disagreements_file, disagreements)
     print(f"Wrote disagreements to {disagreements_file}")
 
@@ -257,4 +283,9 @@ if __name__ == "__main__":
     # Example usage:
     # sample("v6")
     # evaluate("v6")
-    anurag_prep()
+    evaluate(
+        version="v6",
+        hand_suffix="_anurag.json",
+        hand_label_key="is_gpu_architecture_design_patent",
+        hand_label_name="anurag",
+    )
