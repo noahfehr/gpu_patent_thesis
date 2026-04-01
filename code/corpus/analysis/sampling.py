@@ -136,11 +136,16 @@ def anurag_prep(
         f"{target_pos} positive / {target_neg} negative by model label."
     )
 
+IS_GPU_COL = "is_gpu"
+IS_HARDWARE_COL = "is_hardware"
+LABEL_COL = "is_gpu_architecture_design_patent"
+
+
 def evaluate(
     version: str,
     source_suffix: str = "_sample_evaluation.json",
     hand_suffix: str = "_even_sample.json",
-    hand_label_key: str = "is_gpu_architecture_design_patent",
+    hand_label_key: str = LABEL_COL,
     hand_label_name: str = "human",
     disagreements_suffix: str | None = None,
 ) -> dict[str, float]:
@@ -148,27 +153,14 @@ def evaluate(
     Compare model predictions from {version}{source_suffix}
     against hand labels in {version}{hand_suffix}.
 
-    Parameters
-    ----------
-    version : str
-        Dataset version prefix, e.g. "v6".
-    source_suffix : str
-        Suffix for model prediction file.
-    hand_suffix : str
-        Suffix for hand-labeled file.
-    hand_label_key : str
-        Key in the hand-labeled file containing the ground-truth label.
-    hand_label_name : str
-        Name used in outputs, e.g. "human" or "anurag".
-    disagreements_suffix : str | None
-        Optional suffix for disagreement output file.
-        If None, defaults to f"_{hand_label_name}_disagreements.json".
-
-    Returns
-    -------
-    dict[str, float]
-        Evaluation metrics and counts.
+    By default, evaluation is performed on LABEL_COL
+    (is_gpu_architecture_design_patent), but disagreement outputs include:
+    - is_gpu
+    - is_hardware
+    - is_gpu_architecture_design_patent
+    - hand label
     """
+
     source_file = ANALYSIS_DIR / f"{version}{source_suffix}"
     hand_file = ANALYSIS_DIR / f"{version}{hand_suffix}"
 
@@ -194,7 +186,12 @@ def evaluate(
             unlabeled.append(lens_id)
             continue
 
-        model_label = source_by_id[lens_id].get("is_gpu_architecture_design_patent")
+        model_row = source_by_id[lens_id]
+
+        model_is_gpu = model_row.get(IS_GPU_COL)
+        model_is_hardware = model_row.get(IS_HARDWARE_COL)
+        model_label = model_row.get(LABEL_COL)
+        model_error = model_row.get("error")
 
         if model_label is None:
             raise ValueError(
@@ -211,9 +208,13 @@ def evaluate(
                 {
                     "lens_id": lens_id,
                     "model_label": model_label,
+                    IS_GPU_COL: model_is_gpu,
+                    IS_HARDWARE_COL: model_is_hardware,
+                    LABEL_COL: model_label,
                     f"{hand_label_name}_label": hand_label,
                     "abstract": row.get("abstract"),
                     "claims": row.get("claims"),
+                    "error": model_error,
                 }
             )
         elif model_label is False and hand_label is True:
@@ -222,9 +223,13 @@ def evaluate(
                 {
                     "lens_id": lens_id,
                     "model_label": model_label,
+                    IS_GPU_COL: model_is_gpu,
+                    IS_HARDWARE_COL: model_is_hardware,
+                    LABEL_COL: model_label,
                     f"{hand_label_name}_label": hand_label,
                     "abstract": row.get("abstract"),
                     "claims": row.get("claims"),
+                    "error": model_error,
                 }
             )
 
@@ -257,17 +262,17 @@ def evaluate(
 
     print(f"Evaluation against {hand_label_name} labels for {version}")
     print("-" * 40)
-    print(f"Evaluated:  {total}")
-    print(f"TP:         {tp}")
-    print(f"TN:         {tn}")
-    print(f"FP:         {fp}")
-    print(f"FN:         {fn}")
-    print(f"Accuracy:   {accuracy:.3f}")
-    print(f"Precision:  {precision:.3f}")
-    print(f"Recall:     {recall:.3f}")
-    print(f"F1:         {f1:.3f}")
-    print(f"Missing IDs:{len(missing_ids)}")
-    print(f"Unlabeled:  {len(unlabeled)}")
+    print(f"Evaluated:   {total}")
+    print(f"TP:          {tp}")
+    print(f"TN:          {tn}")
+    print(f"FP:          {fp}")
+    print(f"FN:          {fn}")
+    print(f"Accuracy:    {accuracy:.3f}")
+    print(f"Precision:   {precision:.3f}")
+    print(f"Recall:      {recall:.3f}")
+    print(f"F1:          {f1:.3f}")
+    print(f"Missing IDs: {len(missing_ids)}")
+    print(f"Unlabeled:   {len(unlabeled)}")
 
     if disagreements_suffix is None:
         disagreements_suffix = f"_{hand_label_name}_disagreements.json"
@@ -282,10 +287,20 @@ def evaluate(
 if __name__ == "__main__":
     # Example usage:
     # sample("v6")
-    # evaluate("v6")
-    evaluate(
-        version="v6",
-        hand_suffix="_anurag.json",
-        hand_label_key="is_gpu_architecture_design_patent",
-        hand_label_name="anurag",
-    )
+    evaluate("v6")
+
+    # evaluate(
+    #     version="v6",
+    #     source_suffix="_gpt_sample_update.json",
+    #     hand_suffix="_even_sample_noah.json",
+    #     hand_label_key="is_gpu_architecture_design_patent",
+    #     hand_label_name="noah_new",
+    # )
+    # evaluate(
+    #     version="v6",
+    #     source_suffix="_sample_previous_prompt_evaluation.json",
+    #     hand_suffix="_even_sample_noah.json",
+    #     hand_label_key="is_gpu_architecture_design_patent",
+    #     hand_label_name="noah_old",
+    # )
+    

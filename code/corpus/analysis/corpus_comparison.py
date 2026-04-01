@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 from openai import OpenAI
 from pydantic import BaseModel
+from typing import Optional
 
 BASE_DIR = Path("data")
 DATA_DIR = BASE_DIR / "claims_added"
@@ -15,21 +16,110 @@ ID_COL = "lens_id"
 ABSTRACT_COL = "abstract"
 CLAIMS_COL = "claims"
 LABEL_COL = "is_gpu_architecture_design_patent"
-
+IS_GPU_COL = "is_gpu"
+IS_HARDWARE_COL = "is_hardware"
 
 @dataclass
 class PatentText:
     lens_id: str
     abstract: str
     claims: str
-    is_gpu_architecture_design_patent: bool = None
+    is_gpu: Optional[bool] = None
+    is_hardware: Optional[bool] = None
 
 
-class GPUArchitectureLabel(BaseModel):
-    is_gpu_architecture_design_patent: bool
+class GPURelatedLabel(BaseModel):
+    is_gpu: bool
 
 
-PROMPT = (
+class HardwareLabel(BaseModel):
+    is_hardware: bool
+
+class TwoStageLabel(BaseModel):
+    is_gpu: bool
+    is_hardware: bool
+
+ACCELERATOR_RELEVANT_PROMPT = (
+    "You are classifying patents.\n\n"
+
+    "Task:\n"
+    "Decide whether a patent is relevant to the platform architecture or execution model of a massively parallel compute accelerator "
+    "(e.g., GPU, TPU, NPU, AI/DNN accelerator).\n\n"
+
+    "Output:\n"
+    "Return TRUE if the claimed invention is specifically tied to how a massively parallel accelerator executes work, moves data, "
+    "is programmed, or is architecturally supported.\n"
+    "Return FALSE otherwise.\n\n"
+
+    "Core rule:\n"
+    "Return TRUE only if the claimed novelty is specific to the accelerator platform or its execution model. "
+    "This includes mechanisms that directly support accelerator execution, programming, memory access, scheduling, synchronization, "
+    "or data movement.\n\n"
+
+    "Return TRUE for:\n"
+    "- accelerator execution models and semantics (e.g., SIMT, warps, thread groups, work-items, shaders, ray tracing execution)\n"
+    "- accelerator-specific compute organization (e.g., tensor units, PE/MAC arrays, streaming multiprocessors)\n"
+    "- hardware or software mechanisms that directly support accelerator execution or programming\n"
+    "- memory hierarchy, dataflow, buffering, tiling, address translation, or data movement mechanisms adapted to accelerator workloads\n"
+    "- interconnect, host-device communication, chiplet, or memory-coupling mechanisms when the novelty is specifically in supporting accelerator execution or dataflow\n"
+    "- compiler, runtime, driver, API, or programming model mechanisms when they are specifically designed for accelerator execution semantics\n"
+    "- mechanisms for coordinating work between accelerator cores, memory, host processors, or peer accelerators when tied to the accelerator execution model\n\n"
+
+    "Return FALSE for:\n"
+    "- generic CPUs, generic SoCs, or generic system infrastructure with no accelerator-specific adaptation\n"
+    "- generic memory, interconnect, DMA, storage, or networking inventions that could apply equally to any compute system\n"
+    "- generic ML algorithms, model architectures, or training/inference methods without accelerator-specific implementation details\n"
+    "- FPGA or programmable logic inventions unless the claimed novelty is specifically directed to accelerator execution or support for accelerator dataflow\n"
+    "- fabrication, packaging, materials, process technology, or circuit implementation details unless the claimed novelty is specifically about supporting accelerator architecture or execution\n\n"
+
+    "Important:\n"
+    "Accelerator mention alone is not sufficient.\n"
+    "Focus on claimed novelty, not just examples or possible use cases.\n"
+    "Return TRUE only when the invention is specifically about the accelerator platform or execution model, including hardware or software that directly serves it."
+)
+
+HARDWARE_PROMPT = (
+    "You are classifying patents.\n\n"
+
+    "Task:\n"
+    "Decide whether an accelerator-relevant patent describes hardware architecture that supports the execution model of a massively parallel compute accelerator "
+    "(e.g., GPU, TPU, NPU, AI/DNN accelerator).\n\n"
+
+    "Output:\n"
+    "Return TRUE if the claimed novelty is in hardware architecture that directly supports accelerator execution, dataflow, memory access, or coordination.\n"
+    "Return FALSE otherwise.\n\n"
+
+    "Core rule:\n"
+    "Return TRUE only if the invention introduces or modifies hardware mechanisms that serve the accelerator execution model. "
+    "This includes hardware inside the accelerator as well as closely coupled hardware mechanisms outside the compute core when they are specifically designed to support accelerator execution.\n\n"
+
+    "Return TRUE for:\n"
+    "- compute units, SIMD/SIMT lanes, tensor units, MAC/PE arrays, shader or ray tracing hardware\n"
+    "- execution control hardware such as scheduling, synchronization, arbitration, dependency handling, or work distribution\n"
+    "- accelerator-specific memory hierarchy such as shared memory, scratchpad, local memory, cache behavior, tiling support, buffering, or register-file related mechanisms\n"
+    "- MMU, TLB, address translation, page handling, prefetch, copy engines, or other memory-access hardware adapted to accelerator execution\n"
+    "- on-device interconnect and data movement hardware between accelerator compute elements\n"
+    "- host-device, device-memory, chiplet-memory, or peer-accelerator hardware mechanisms when the claimed novelty is specifically in serving accelerator execution or accelerator dataflow\n"
+    "- dedicated boards, access engines, memory fabrics, or interconnect hardware specifically designed to feed or coordinate accelerator workloads\n\n"
+
+    "Return FALSE for:\n"
+    "- software only, including compiler, runtime, driver, OS, API, or scheduling logic not claimed as hardware\n"
+    "- generic ML algorithms, training methods, inference methods, or model design\n"
+    "- generic processors, generic DMA, generic memory controllers, generic interconnects, or generic system infrastructure not specifically adapted to accelerator execution\n"
+    "- FPGA fabrics or programmable logic in the abstract, unless the claimed novelty is specifically a hardware architecture for serving accelerator execution\n"
+    "- fabrication, packaging, process technology, or circuit-level implementation details unless the architectural novelty is specifically about support for accelerator execution\n\n"
+
+    "Important:\n"
+    "Accelerator mention alone is not sufficient.\n"
+    "Return FALSE if the accelerator is only context.\n"
+    "Return FALSE if the contribution is software or algorithmic rather than hardware architectural.\n\n"
+
+    "Decision rule:\n"
+    "Focus on claimed novelty.\n"
+    "If the novelty is hardware architecture specifically designed to support the execution model of a massively parallel accelerator, return TRUE; otherwise return FALSE."
+)
+
+SINGLE_PROMPT = (
     "You are classifying patents.\n\n"
 
     "Task:\n"
@@ -75,7 +165,6 @@ PROMPT = (
     "If the novelty is in system behavior, memory management policy, or software → FALSE."
 )
 
-
 def load_corpus(version: str) -> pd.DataFrame:
     path = DATA_DIR / f"{version}_processed.csv"
     if not path.exists():
@@ -111,24 +200,74 @@ def sample_patents(df: pd.DataFrame, count: int, random_state: int = 42) -> list
         for _, row in sampled_df.iterrows()
     ]
 
-
-def classify_gpu_architecture_design(client: OpenAI, patent: PatentText) -> bool:
-    content = (
+def build_patent_content(patent: PatentText) -> str:
+    return (
         f"lens_id: {patent.lens_id}\n\n"
         f"ABSTRACT:\n{patent.abstract}\n\n"
         f"CLAIMS:\n{patent.claims}\n"
     )
 
+def classify_is_gpu(client: OpenAI, patent: PatentText) -> bool:
+    content = build_patent_content(patent)
+
     resp = client.responses.parse(
         model="gpt-5-mini",
         input=[
             {"role": "system", "content": "Return only the structured boolean."},
-            {"role": "user", "content": PROMPT + "\n\n" + content},
+            {"role": "user", "content": ACCELERATOR_RELEVANT_PROMPT + "\n\n" + content},
         ],
-        text_format=GPUArchitectureLabel,
+        text_format=GPURelatedLabel,
     )
 
-    return resp.output_parsed.is_gpu_architecture_design_patent
+    return resp.output_parsed.is_gpu
+
+def classify_is_hardware(client: OpenAI, patent: PatentText) -> bool:
+    content = build_patent_content(patent)
+
+    resp = client.responses.parse(
+        model="gpt-5-mini",
+        input=[
+            {"role": "system", "content": "Return only the structured boolean."},
+            {"role": "user", "content": HARDWARE_PROMPT + "\n\n" + content},
+        ],
+        text_format=HardwareLabel,
+    )
+
+    return resp.output_parsed.is_hardware
+
+def classify_two_stage(client: OpenAI, patent: PatentText) -> dict[str, bool]:
+    is_gpu = classify_is_gpu(client, patent)
+
+    if not is_gpu:
+        return {
+            "is_gpu": False,
+            "is_hardware": False,
+        }
+
+    is_hardware = classify_is_hardware(client, patent)
+
+    return {
+        "is_gpu": True,
+        "is_hardware": is_hardware,
+    }
+
+# def classify_gpu_architecture_design(client: OpenAI, patent: PatentText) -> bool:
+#     content = (
+#         f"lens_id: {patent.lens_id}\n\n"
+#         f"ABSTRACT:\n{patent.abstract}\n\n"
+#         f"CLAIMS:\n{patent.claims}\n"
+#     )
+
+#     resp = client.responses.parse(
+#         model="gpt-5-mini",
+#         input=[
+#             {"role": "system", "content": "Return only the structured boolean."},
+#             {"role": "user", "content": PROMPT + "\n\n" + content},
+#         ],
+#         text_format=GPUArchitectureLabel,
+#     )
+
+#     return resp.output_parsed.is_gpu_architecture_design_patent
 
 
 def write_json(path: Path, payload) -> None:
@@ -245,15 +384,19 @@ def evaluate_corpus(version: str, count: int) -> tuple[Path, Path]:
     sample_payload = [asdict(p) for p in sampled]
     sample_path = ANALYSIS_DIR / f"{version}_sample.json"
     write_json(sample_path, sample_payload)
+
     evaluations = []
     for i, patent in enumerate(sampled, start=1):
         try:
-            label = classify_gpu_architecture_design(client, patent)
+            result = classify_two_stage(client, patent)
+
             evaluations.append({
                 "lens_id": patent.lens_id,
                 "abstract": patent.abstract,
                 "claims": patent.claims,
-                LABEL_COL: bool(label),
+                IS_GPU_COL: result["is_gpu"],
+                IS_HARDWARE_COL: result["is_hardware"],
+                LABEL_COL: result["is_gpu"] and result["is_hardware"],
                 "error": None,
             })
         except Exception as e:
@@ -261,6 +404,8 @@ def evaluate_corpus(version: str, count: int) -> tuple[Path, Path]:
                 "lens_id": patent.lens_id,
                 "abstract": patent.abstract,
                 "claims": patent.claims,
+                IS_GPU_COL: None,
+                IS_HARDWARE_COL: None,
                 LABEL_COL: None,
                 "error": f"{type(e).__name__}: {e}",
             })
@@ -271,23 +416,118 @@ def evaluate_corpus(version: str, count: int) -> tuple[Path, Path]:
     eval_path = ANALYSIS_DIR / f"{version}_sample_evaluation.json"
     write_json(eval_path, evaluations)
 
-    n_true = sum(
-        1 for row in evaluations
-        if row[LABEL_COL] is True
-    )
-    n_scored = sum(
-        1 for row in evaluations
-        if row[LABEL_COL] is not None
-    )
+    n_gpu_scored = sum(1 for row in evaluations if row[IS_GPU_COL] is not None)
+    n_gpu_true = sum(1 for row in evaluations if row[IS_GPU_COL] is True)
+    n_hardware_true = sum(1 for row in evaluations if row[IS_HARDWARE_COL] is True)
 
     print(f"Sample written to: {sample_path}")
     print(f"Evaluation written to: {eval_path}")
-    print(f"Scored {n_scored}/{len(evaluations)}")
-    print(f"TRUE count: {n_true}")
+    print(f"Scored {n_gpu_scored}/{len(evaluations)}")
+    print(f"GPU TRUE count: {n_gpu_true}")
+    print(f"Hardware TRUE count: {n_hardware_true}")
 
     return sample_path, eval_path
 
+def analyze_sample_new_prompt(
+    input_filename: str = "v6_even_sample_noah.json",
+    output_filename: str = "v6_gpt_sample_update.json",
+) -> tuple[Path, Path]:
+    """
+    Read an existing sampled JSON file from ANALYSIS_DIR, re-classify each row
+    using the current two-stage prompts, and write the updated results to a new JSON file.
+
+    Input file is expected to contain rows like:
+    {
+        "lens_id": "...",
+        "abstract": "...",
+        "claims": "...",
+        ...
+    }
+
+    The existing classification in the input file is ignored. We only read:
+    - lens_id
+    - abstract
+    - claims
+
+    Output file contains:
+    - lens_id
+    - abstract
+    - claims
+    - is_gpu
+    - is_hardware
+    - error
+    - eval_id
+    """
+    if not os.getenv("OPENAI_API_KEY"):
+        raise EnvironmentError("OPENAI_API_KEY environment variable is not set.")
+
+    input_path = ANALYSIS_DIR / input_filename
+    output_path = ANALYSIS_DIR / output_filename
+
+    rows = read_json(input_path)
+    if not isinstance(rows, list):
+        raise ValueError(f"{input_path} must contain a JSON list of patent rows.")
+
+    client = OpenAI()
+    evaluations = []
+
+    for i, row in enumerate(rows, start=1):
+        lens_id = str(row.get(ID_COL, "")).strip()
+        abstract = str(row.get(ABSTRACT_COL, "") or "")
+        claims = str(row.get(CLAIMS_COL, "") or "")
+
+        patent = PatentText(
+            lens_id=lens_id,
+            abstract=abstract,
+            claims=claims,
+        )
+
+        try:
+            result = classify_two_stage(client, patent)
+
+            evaluations.append({
+                "lens_id": patent.lens_id,
+                "abstract": patent.abstract,
+                "claims": patent.claims,
+                IS_GPU_COL: result["is_gpu"],
+                IS_HARDWARE_COL: result["is_hardware"],
+                LABEL_COL: result["is_gpu"] and result["is_hardware"],
+                "error": None,
+                "eval_id": i,
+            })
+        except Exception as e:
+            evaluations.append({
+                "lens_id": patent.lens_id,
+                "abstract": patent.abstract,
+                "claims": patent.claims,
+                IS_GPU_COL: None,
+                IS_HARDWARE_COL: None,
+                LABEL_COL: None,
+                "error": f"{type(e).__name__}: {e}",
+                "eval_id": i,
+            })
+
+        if i % 10 == 0:
+            print(f"Processed {i}/{len(rows)}")
+
+    write_json(output_path, evaluations)
+
+    n_gpu_scored = sum(1 for row in evaluations if row[IS_GPU_COL] is not None)
+    n_gpu_true = sum(1 for row in evaluations if row[IS_GPU_COL] is True)
+    n_hardware_true = sum(1 for row in evaluations if row[IS_HARDWARE_COL] is True)
+    n_errors = sum(1 for row in evaluations if row["error"] is not None)
+
+    print(f"Input read from: {input_path}")
+    print(f"Updated evaluations written to: {output_path}")
+    print(f"Scored {n_gpu_scored}/{len(evaluations)}")
+    print(f"GPU TRUE count: {n_gpu_true}")
+    print(f"Hardware TRUE count: {n_hardware_true}")
+    print(f"Errors: {n_errors}")
+
+    return input_path, output_path
 
 if __name__ == "__main__":
-    evaluate_corpus("v6", 1000)
+    # evaluate_corpus("v6", 1000)
     # compare_classifications("v5")
+    # analyze_sample_new_prompt()
+    analyze_sample_new_prompt(input_filename="v6_anurag.json", output_filename="v6_anurag_gpt_update.json")

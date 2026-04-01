@@ -1,0 +1,253 @@
+[
+  {
+    "lens_id": "157-651-620-115-734",
+    "abstract": "A multi-tenant virtual machine infrastructure (MTVMI) allows multiple tenants to independently access and use a plurality of virtual computing resources via the Internet. Within the MTVMI, different tenants may define unique configurations of virtual computing resources and unique rules to govern the use of the virtual computing resources. The MTVMI may be configured to provide valuable services for tenants and users associated with the tenants.",
+    "classification": false
+  },
+  {
+    "lens_id": "031-592-125-358-986",
+    "abstract": "A processor-implemented neural network data processing method includes: determining a total number of either one of a first feature value and values less than or equal to the first feature value, in feature data output from a layer of a neural network; determining a quantization parameter based on the determined number; quantizing the feature data based on the determined quantization parameter; and inputting the quantized feature data to a another layer of the neural network connected to the layer.",
+    "classification": false
+  },
+  {
+    "lens_id": "041-460-594-344-34X",
+    "abstract": "Apparatus for data processing and a method of data processing are provided. Address translation storage stores address translations between first set addresses and second set addresses, and responds to a request comprising a first set address to return a response comprising a second set address if the required address translation is currently stored therein. If it is not the request is forwarded towards memory in a memory hierarchy. A pending request storage stores entries for received requests and in response to reception of the request, if a stored entry for a previous request indicates that the previous request has been forwarded towards the memory and an expected response to the previous request will provide the address translation, intercepts the request to delay its reception by the address translation storage. Bandwidth pressure on the address translation storage is thus relieved.",
+    "classification": true
+  },
+  {
+    "lens_id": "076-193-461-957-851",
+    "abstract": "A device includes a processor configured to obtain a reference task set representing a result of dividing instructions for an inference operation of a neural network model into tasks, which are execution units of a processing device, determine an additional task set based on the obtained reference task set, based on the processing device executing a first inference operation and a second inference operation in parallel as the reference task set and the additional task set through multi-processes, determine a predicted runtime of at least one inference operation of the first inference operation or the second inference operation, adjust the determined additional task set, and based on the predicted runtime being less than or equal to a target runtime, associate the determined additional task with the target runtime.",
+    "classification": false
+  },
+  {
+    "lens_id": "067-335-828-143-382",
+    "abstract": "A hashing method and system. The method comprises receiving by a computing system, a user password. The computing system generates a first hash for the user password. The computing system generates a second hash for a system parameter and performs an operation relating the first hash to the second hash to generate a first combination value. The computing system generates a third hash for the first combination value. The computing system receives a specific password for requesting access to the computing system. The computing system generates a fourth hash for said specific password and performs an operation relating the fourth hash to the second hash to generate a second combination value. The computing system generates a fifth hash for the second combination value. The third hash is compared to the fifth hash to determine that the third hash matches the fifth hash. Access is enabled to the computing system."
+  },
+  {
+    "lens_id": "155-956-931-604-88X",
+    "abstract": "A system including a central processing unit, a first memory channel being configured to couple the central processing unit to a first semiconductor memory unit, wherein the first memory channel is configured to be clocked with a first clock frequency, and a second memory channel being configured to couple the central processing unit to a second semiconductor memory unit, wherein the second memory channel is configured or configurable to be clocked with a second clock frequency smaller than the first clock frequency.",
+    "classification": false
+  },
+  {
+    "lens_id": "129-263-979-893-655",
+    "abstract": "In some examples, a method for compressing a spectral reflectance dataset may be performed through compression circuitry. The method may include computing a principal component analysis basis for the spectral reflectance dataset; projecting the spectral reflectance dataset onto the principal component analysis basis to obtain a weight matrix; quantizing the weight matrix; performing a Huffman encoding process on the quantized weight matrix to generate a Huffman table and Huffman codes for the quantized weight matrix; and providing compressed spectral reflectance data as the principal component analysis basis, the Huffman table, and the Huffman codes."
+    , "classification": false
+  },
+  {
+    "lens_id": "194-267-895-308-012",
+    "abstract": "A method for training a generator, by a generator training system including a processor and memory, includes: extracting training statistical characteristics from a batch normalization layer of a pre-trained model, the training statistical characteristics including a training mean \u03bc and a training variance \u03c32; initializing a generator configured with generator parameters; generating a batch of synthetic data using the generator; supplying the batch of synthetic data to the pre-trained model; measuring statistical characteristics of activations at the batch normalization layer and at the output of the pre-trained model in response to the batch of synthetic data, the statistical characteristics including a measured mean, and {circumflex over (\u03bc)}\u03c8 measured variance {circumflex over (\u03c3)}\u03c82; computing a training loss in accordance with a loss function L\u03c8 based on \u03bc, \u03c32, {circumflex over (\u03bc)}\u03c8, and {circumflex over (\u03c3)}\u03c82; and iteratively updating the generator parameters in accordance with the training loss until a training completion condition is met to compute the generator.",
+    "classification": false
+  },
+  {
+    "lens_id": "130-246-625-723-73X",
+    "abstract": "A computer architecture allows load instructions to fetch from cache memory \u201cfat\u201d loads having more data than necessary to satisfy execution of the load instruction, for example, loading a full cache line instead of a required word. The fat load allows load instructions having spatiotemporal locality to share the data of the fat load avoiding cache accesses. Rapid access to local data structures is provided by using base register names to directly access those structures as a proxy for the actual load base register address,"
+    ,"classification":false
+
+  },
+  {
+    "lens_id": "187-785-964-350-959",
+    "abstract": "A memory system is provided comprising a memory controller, a level 1 (L1) cache including L1 tag memory and L1 data memory, a level 2 (L2) cache coupled to the L1 cache, the L2 cache including L2 tag memory having a plurality of L2 tag entries and a L2 data memory having a plurality of L2 data entries. The L2 tag entries are more than the L2 data entries. In response to receiving a tag and an associated data, if L2 tag entries having corresponding L2 data entries are unavailable and if a first tag in a first L2 tag entry with an associated first data in a first L2 data entry has a more recent or duplicate value of the first data in the L1 data memory, the memory controller moves the first tag to a second L2 tag entry that does not have a corresponding L2 data entry, vacates the first L2 tag entry and the first L2 data entry and stores the received tag in the first L2 tag entry and the received data in the first L2 data entry.",
+    "classification":false
+  },
+  {
+    "lens_id": "151-560-783-279-221",
+    "abstract": "Techniques are disclosed that can obtain a description of intended digital content data in a producer computer, create a task graph of the intended digital content data, send the task graph to a consumer computer over a bus, execute the task graph locally in the consumer computer to realize an approximation of the intended digital content data, and render the approximation of the intended digital content data on a local display or other appropriate output device."
+    ,"classification":false
+  
+  },
+  {
+    "lens_id": "147-668-905-627-184",
+    "abstract": "Pervasive logic is provided that includes a random event generator. The random event generator randomly selects which processor of a plurality of processors in the multiprocessor system is to be a boot processor for the multiprocessor system. A corresponding configuration bit for the randomly selected processor is set to identify the processor as a boot processor. Based on the setting of the configuration bits for each processor in the plurality of processors, a selection of a security key is made. The security key is then used to decrypt the boot code for booting the multiprocessor system. Only the randomly selected boot processor is able to select the correct security key for correctly decrypting the boot code, which it then executes to bring the system to an operational state."
+    ,"classification":false
+  },
+  {
+    "lens_id": "098-671-636-760-797",
+    "abstract": "A storage device includes an accelerator including a first processor, and a storage controller that uses a buffer memory as a working memory and includes a second processor different in type from the first processor. The second processor is configured to establish a first communication path between the first processor and the buffer memory responsive to a request of the first processor, and the first processor is configured to access the buffer memory through the first communication path."
+    ,"classification":true
+  },
+  {
+    "lens_id": "178-613-199-349-24X",
+    "abstract": "A method, a device, and a non-transitory computer readable medium for performing memory management in a graphics processing unit are presented. Hints about the memory usage of an application are provided to a page manager. At least one runtime memory usage pattern of the application is sent to the page manager. Data is swapped into and out of a memory by analyzing the hints and the at least one runtime memory usage pattern."
+    ,"classification":true
+  },
+  {
+    "lens_id": "193-251-905-236-591",
+    "abstract": "Disclosed embodiments relate to conducting a real-time selection of a targeted advertisement or campaign on a personal computing device. Techniques include receiving, on the personal computing device, a plurality of sets of advertising competition rules associated with a plurality of discrete advertising campaigns. Further techniques include identifying an opportunity to display a targeted advertisement to a user of the personal computing device, accessing sensitive data associated with the user stored locally on the personal computing device, the sensitive data not being made available outside of the personal computing device without authorization from the user, and conducting, based on the identified opportunity and using the accessed sensitive data, a real-time selection of at least one of the plurality of discrete advertising campaigns, the real-time selection is based on one or more of the plurality of sets of advertising competition rules."
+    ,"classification":false
+  },
+  {
+    "lens_id": "071-160-587-427-239",
+    "abstract": "A method for compressing multiple original convolution parameters into a convolution operation chip includes steps of: determining a range of the original convolution parameters; setting an effective bit number for the range; setting a representative value, wherein the representative value is within the range; calculating differential values between the original convolution parameters and the representative value; quantifying the differential values to a minimum effective bit to obtain a plurality of compressed convolution parameters; and transmitting the effective bit number, the representative value and the compressed convolution parameters to the convolution operation chip."
+    ,"classification":true
+  },
+  {
+    "lens_id": "001-844-876-901-425",
+    "abstract": "A design layout including shapes of target areas for forming semiconductor fins employing directed self-assembly can be decomposed into guiding patterns and cut patterns. The lengthwise edges of the shapes of target areas are adjusted. Widthwise edges of the adjusted shapes are extended outward to generate diffusion shapes. Guiding pattern shapes are then generated employing the diffusion shapes. Taper edges are adjusted based on process bias of a photoresist material to be subsequently employed. Optionally, a portion of a guiding pattern shape between diffusion shapes may be removed as a connection shape. The guiding pattern shapes can define at least one guiding pattern mask for lithographic pattern of guiding pattern shapes, and cut shapes can be derived from the diffusion shapes and the guiding pattern shapes. The guiding pattern shapes and the cut shapes may be adjusted to accommodate effects at device cell edges and at device macro edges."
+    ,"classification":false
+  },
+  {
+    "lens_id": "104-009-886-710-257",
+    "abstract": "A system which, with data provided by one or more sensors, detects a user's alteration of the geometries of parts of his face, head, neck, and/or shoulders. It determines the extent of each alteration and normalizes it with respect to the maximum possible range of each alteration so as to assign to each part-specific alteration a numeric score indicative of its extent. The normalized part-specific scores are combined so as to produce a composite numeric code representative of the complete set of simultaneously-executed geometric alterations. Each composite code is translated, or interpreted, relative to an appropriate context defined by an embodiment an application executing on an embodiment, or by the user. For example, each composite code might be interpreted as, or assigned to, a specific alphanumeric letter, a color, a musical note, etc. Through the use of this system, a user may communicate data and/or commands to a computerized device, while retaining full use of his hands and his voice for other tasks, and while being free to focus his visual attention on something other than the system."
+    ,"classification":false
+  },
+  {
+    "lens_id": "089-769-550-473-462",
+    "abstract": "Systems and techniques for noise reduction in video are described. Example implementations provide improved motion-adaptive temporal or spatio-temporal noise reduction that use an improved blending of the current frame with previous frames. The improved blending may be particularly effective for processing video captured in noisy environments such as low-light and/or mobile environments. In some example implementations, the improved blending is based on more accurately distinguishing between pixel difference in adjacent images that are caused by motion rather than noise."
+    ,"classification":false
+  },
+  {
+    "lens_id": "110-734-403-083-041",
+    "abstract": "A computer system manages the allocation of memory to an application program using a dependency tree. The dependency tree informs a memory manager of data inputs, data outputs, and intermediate values associated with execution of the application program. The memory manager allocates a single heap structure within a physical memory. Data associated with each node of the dependency tree is allocated to the heap structure so that data input values are allocated in a contiguous block, and intermediate values are allocated separately. In various examples, as execution of the application program proceeds, the separation of intermediate values from non-intermediate values within the heap reduces memory fragmentation providing improved performance of the computer system as a whole."
+    ,"classification":false
+  },
+  {
+    "lens_id": "068-419-604-693-363",
+    "abstract": "Embodiments of the present disclosure relate to application partitioning for locality in a stacked memory system. In an embodiment, one or more memory dies are stacked on the processor die. The processor die includes multiple processing tiles and each memory die includes multiple memory tiles. Vertically aligned memory tiles are directly coupled to and comprise the local memory block for a corresponding processing tile. An application program that operates on dense multi-dimensional arrays (matrices) may partition the dense arrays into sub-arrays associated with program tiles. Each program tile is executed by a processing tile using the processing tile's local memory block to process the associated sub-array. Data associated with each sub-array is stored in a local memory block and the processing tile corresponding to the local memory block executes the program tile to process the sub-array data."
+    ,"classification":false
+  },
+  {
+    "lens_id": "107-856-229-393-374",
+    "abstract": "A system for controlling a robot and a method thereof include a robot control server, and a robot, wherein the robot control server may receive a request for issuance of a target code related to access authority to the robot from a user operating the robot, and wherein the robot may identify the target code input by the user, and receive a command from the user based on validity of the target code being verified."
+    ,"classification":false
+  },
+  {
+    "lens_id": "160-308-759-624-031",
+    "abstract": "The invention deals with a new method for preparing a quantum transistor and a modified quantum transistor, which is an electronic device in the field of microelectronics formed by (or containing) one-dimensional or two-dimensional structures that have quantum conductance and capacitance, correlated by quantum entanglement; wherein the obtained quantum transistor works in A.C. (alternating current) mode or through transient disturbances. Thus, it becomes possible to provide all the applications already available in classical transistors that operate in D.C. (direct current) mode, but with additional advantages that include greater sensitivities and better electronic and information transport performance over long distances in the device, intrinsic properties of quantum phenomena and new transistor architectures that were previously not possible to be realized in D.C. mode, as is the case with classical transistors."
+    ,"classification":false
+  },
+  {
+    "lens_id": "156-890-487-407-958",
+    "abstract": "Disclosed are various embodiments for performing a join operation using a graphics processing unit (GPU). The GPU can receive input data including sequences or tuples. The GPU can initialize a histogram in a memory location shared by threads. The GPU can build the histogram of hash values for the sequences. The GPU can reorder the sequences based on the histogram. The GPU can probe partitions and store the results in a buffer pool. The GPU can output the results of the join."
+    ,"classification":false
+  },
+  {
+    "lens_id": "120-622-025-469-188",
+    "abstract": "A data transformation/processing system includes a data transformation/processing management device coupled to a client device, processing systems, memory systems, and storage systems. The data transformation/processing management device receives a request from the client device to process first data to generate second data, determines a first subset of the processing systems for performing processing operations to process the first data, and identifies a data path for the processing operations that includes storage locations provided by subsets of the memory systems and the storage systems. The data transformation/processing management device then determines a second subset of the processing systems in the data path for performing transformation operations to transform the first data for processing and storage in the storage locations, and configures the first subset of the processing systems to perform the processing operations and the second subset of the processing systems to perform the transformation operations."
+    ,"classification":false
+  },
+  {
+    "lens_id": "176-220-862-112-59X",
+    "abstract": "A terminal obtains at least one piece of data, in which each piece of data in the at least one piece of data belongs to a different modality; obtains acquisition time information corresponding to each piece of data; and sends the at least one piece of data and at least one acquisition time information to a centralized processing unit. The centralized processing unit receives at least one piece of data and at least one piece of acquisition time information from at least one terminal, determines data corresponding to each acquisition time information in the at least one acquisition time information from the at least one piece of data, and processes the data corresponding to each acquisition time information."
+    ,"classification":false
+  },
+  {
+    "lens_id": "073-862-406-073-267",
+    "abstract": "Request processing is optimized. The request has elements. The method, computer program and database system includes selecting an access path for the request taking into consideration a stored actual request element cost, processing the request using the selected access path, producing one or more actual request element costs, and storing the one or more actual request element costs."
+    ,"classification":false
+  },
+  {
+    "lens_id": "142-885-483-888-542",
+    "abstract": "A system and method to provide notification of a controller fault in a multi-controller system using a message authentication code (MAC) involve receiving, at a security peripheral, a fault notification from a monitor of a first controller of the multi-controller system indicating that the first controller is faulty. The method also includes receiving, at the security peripheral, a key index from the first, and providing, from the security peripheral, a faulty MAC to the first controller based on the fault notification. The faulty MAC is different than the first correct MAC indicated by the key index from the first controller. A second controller among the controllers of multi-controller system receives a message from the first controller that includes the faulty MAC. The second controller determines that the message from the first controller cannot be trusted based on the faulty MAC not matching the first correct MAC."
+    ,"classification":false
+  },
+  {
+    "lens_id": "078-502-033-531-562",
+    "abstract": "Embodiments of the present disclosure provide enhanced systems and methods for predicting optimal design flow parameters for optimized output targets for physical design synthesis of a given IC design. A Variational Autoencoder (VAE) along with a regression network are trained using a dataset comprising synthesis design construction flows from historical IC designs to provide a training data representation of the dataset constrained to a latent space of the VAE. The system generates feature vectors based on the training data representation of the dataset and updates the feature vectors with initial design characteristics of the given IC design. The system iteratively performs an input gradient search of the updated feature vectors to optimize an objective function of the design targets to identify locally optimal design parameters. The system identifies globally optimal design flow parameters for optimized design targets based on locally optimal design parameters."
+    ,"classification":false
+  },
+  {
+    "lens_id": "122-132-998-271-718",
+    "abstract": "A storage device includes a storage controller, a Flash Memory and a hardware accelerator communicatively coupled. The hardware accelerator is configured to selectively retrieve data stored in the flash memory in response to a request for the data and may perform other operation to accelerate data access for a computer system."
+    ,"classification":false
+  },
+  {
+    "lens_id": "007-011-287-094-233",
+    "abstract": "Embodiments in the disclosure are directed to the use of distributed computing to align reads against multiple portions of a reference dataset. Aligned portions of the reference dataset that correspond with an above-threshold alignment score can be assessed for the presence of sparse indicators that can be categorized and used to influence a determination of a state transition likelihood. Various tasks associated with the processing of reads (e.g., alignment, sparse indicator detection, and/or determination of a state transition likelihood) may be able to take advantage of parallel processing and can be distributed among the machines while considering the resource utilization of those machines. Different load-balancing mechanisms can be employed in order to achieve even resource utilization across the machines, and in some cases may involve assessing various processing characteristics that reflect a predicted resource expenditure and/or time profile for each task to be processed by a machine."
+    ,"classification":false
+  },
+  {
+    "lens_id": "060-998-385-118-868",
+    "abstract": "An object of the present invention is to provide an image retrieval system for computing similarity in the case when components are different between an image feature vector of a query image and the image feature vectors of images to be retrieved when retrieval is carried out by using features of images. A first image feature vector conversion device converts a query image feature vector into a first image feature vector for use in a similarity computation according to similarity computation image feature vector configuration information describing a given configuration of an image feature vector for use in a similarity computation. A second image feature vector conversion device converts an images-to-be-retrieved feature vector into a second image feature vector for use in a similarity computation according to the similarity computation image feature vector configuration information. The image feature vector similarity computation devices compare the first image feature vector with the second image feature vector according to the similarity computation image feature vector configuration information, and compute the similarity."
+    ,"classification":false
+  },
+  {
+    "lens_id": "147-987-590-843-306",
+    "abstract": "In general, techniques are described for analyzing a command stream that configures a graphics processing unit (GPU) to render one or more render targets. A device comprising a processor may perform the techniques. The processor may be configured to analyze the command stream to determine a representation of the one or more render targets defined by the command stream. The processor may also be configured to, based on the representation of the render targets, and identify one or more rendering inefficiencies that will occur upon execution of the command stream by the GPU. The processor may also be configured to re-order one or more commands in the command stream so as to reduce the identified rendering inefficiencies that will occur upon execution of the command stream by the GPU."
+    ,"classification":false
+  },
+  {
+    "lens_id": "191-856-758-600-830",
+    "abstract": "Methods and apparatuses for bounding the processing domain in a symmetric multiprocessing system are provided. In various implementations, a particular computational task is \u201caffined\u201d to a particular processing unit. Subsequently, when the particular task is executed, the symmetric multiprocessing operating system ensures that the affined processing unit processes the instruction. When the affined processing unit is not processing the particular computational task, the symmetric multiprocessing operating system may cause the processing unit to process alternate instructions. With some implementations, a particular computational task is \u201clinked\u201d to a particular processing unit. Subsequently, when the particular task is executed, the symmetric multiprocessing operating system ensures that the bound processing unit processes the instruction. When the bound processing unit is not processing the particular computational instruction, the bound processing unit may enter a low power or idle state."
+    ,"classification":false
+  },
+  {
+    "lens_id": "025-902-216-854-460",
+    "abstract": "An image processing system including an image encoder and image decoding system is provided. The image encoder system includes an image decomposer, a block encoder, and an encoded image composer. The image decomposer decomposes the image into blocks. The block encoder, which includes a selection module, a codeword generation module and a construction module, processes the blocks. Specifically, the selection module computes a set of parameters from image data values of a set of image elements in the image block. The codeword generation module generates codewords, which the construction module uses to derive a set of quantized image data values. The construction module then maps each of the image element's original image data values to an index to one of the derived image data values. The image decoding system reverses this process to reorder decompressed image blocks in an output data file."
+    ,"classification":false
+  },
+  {
+    "lens_id": "186-796-963-882-379",
+    "abstract": "There is described herein motion-based adaptive quantization for compressing video streams. Motionless portions of pictures are detected and the compression quality of these portions is increased while the compression quality of non-motionless portions is decreased. The QP of a portion of image data, such as a macroblock, is modified for successive motionless portions from a start QP to a target QP in accordance with a multi-step change."
+    ,"classification":false
+  },
+  {
+    "lens_id": "130-501-535-563-694",
+    "abstract": "Embodiments relate to a system for solving differential equations. The system is configured to receive problem packages corresponding to problems to be solved, each comprising at least a differential equation and a domain. A solver stores a plurality of nodes of the domain corresponding to a first time-step, and processes the nodes over a plurality of time-steps using a systolic array comprising hardware for solving the particular type of the differential equation. The systolic array processes each node to generate a node for a subsequent time-step using a sub-array comprising a plurality of branches, each branch comprising a respective set of arithmetic units arranged in accordance with a corresponding term of the discretized form of the differential equation, and an aggregator configured to aggregate the corresponding terms from each branch to generate node data for the subsequent time-step."
+    ,"classification":false
+  },
+  {
+    "lens_id": "120-952-299-803-712",
+    "abstract": "Methods, apparatus, and systems are disclosed for container attestation in client-based workloads. An example apparatus includes at least one memory, machine readable instructions, and processor circuitry to at least one of instantiate or execute the machine readable instructions to access a container attestation and an owner policy, the container attestation including a first signature and the owner policy including a second signature, determine that the first signature and the second signature are valid, iterate through configuration sets of the owner policy to identify a match between a claim of the container attestation and a configuration set, identify a resource constraint associated with the configuration set, and generate a resource description based on the resource constraint, the resource description to determine execution of a container workload on a client-based platform."
+    ,"classification":false
+  },
+  {
+    "lens_id": "138-844-015-825-22X",
+    "abstract": "An adjusting apparatus for adjusting a sensed image from a first angle to a second angle is provided. The adjusting apparatus includes a first memory module, a first calculating module, an encoding module, and an output module. The first memory module is used for receiving and storing the sensed image. The first calculating module accesses the sensed image stored in the first memory module according to a predetermined rule, generates an accessed image, and generates an operation signal according to the accessed image. The predetermined rule is a first reading sequence corresponding to the second angle. The encoding module receives and encodes the operation signal to produce a bit-stream. The output module encodes the bit-stream to produce an output image."
+    ,"classification":false
+  },
+  {
+    "lens_id": "035-855-330-580-84X",
+    "abstract": "By executing parallel processing while keeping a certain parallel number with respect to one user according to a status of processing for converting print data, an information processing apparatus controls the job order and monopolization of computing resources while effectively utilizing scalability of a cloud service."
+    ,"classification":false
+  },
+  {
+    "lens_id": "194-984-727-356-121",
+    "abstract": "In non-limiting examples, wireless scan data collected from a processing device is directly mapped to venues. Wireless scan data is received from a processing device where the wireless scan data comprises at least a first identifier of a wireless connection. Venues associated with the first identifier are identified from a mapping of wireless identifiers to venues based on active validation data associated with particular venues including historical wireless scan data of the particular venues. The plurality of venues are ranked according to a likelihood that the processing device is located at a particular venue based on evaluating the active validation data including the historical wireless scan data from the mapping. A predicted venue that the processing device is located at is determined based on the ranking of the plurality of venues. Other examples are also described."
+    ,"classification":false
+  },
+  {
+    "lens_id": "069-459-666-588-641",
+    "abstract": "Various systems and methods for memory management of high-performance memory are described herein. A system for managing high-performance memory, the system comprising a random access memory; a high-performance memory, the high-performance memory of higher performance than the random access memory; and a memory management unit to: obtain execution metrics for a plurality of blocks resident in a random access memory; select a block from the plurality of blocks based on activity of the block; move the block to high-performance memory; and update a virtual memory mapping for the block from the random access memory to the high-performance memory."
+    ,"classification":true
+  },
+  {
+    "lens_id": "079-293-836-319-379",
+    "abstract": "An information handling system includes first and second compute nodes, each compute node including a central processing unit (CPU), a computational accelerator (CAC). An inter-accelerator transport (IAT) interface of each node connects to an IAT transport to provide an external interconnect, directly coupling first node GPUs with second node GPUs, for inter-node GPU-to-GPU (GtG) data traffic. Inter-node adapters on each node connect to an inter-node transport (INT) to provide an external interconnect coupling the GPUs of one node to the CPU/root of the other node for carrying inter-node non-GtG data traffic. Interconnects carrying non-GtG traffic, including the INT, may be \u00d716 PCIe 3.0 or later links while interconnects carrying GtG traffic, including the IAT interconnects, may be implemented as greater-than-PCIe (GTP) interconnects where GTP interconnects have a data transfer rate exceeding comparable PCIe data transfer rates, e.g., 16 GB/s per \u00d716 PCIE 3.0."
+    ,"classification":true
+  },
+  {
+    "lens_id": "163-377-405-948-707",
+    "abstract": "Provided is a method of managing commands, which includes receiving a frame buffer object (FBO) change command, comparing an FBO designated by the FBO change command with a FBO currently processed by a graphics processing unit (GPU) to determine whether the two FBOs are the same as each other, and managing the FBO change command or a flush command based on a result of the comparison."
+    ,"classification":false
+  },
+  {
+    "lens_id": "101-333-584-647-841",
+    "abstract": "The present invention provides a method for performing a transform, the method comprising the steps of: deriving a row transform set, a column transform set, and a permutation matrix on the basis of a given transform matrix (H) and error tolerance parameter; obtaining a row-column transform (RCT) coefficient on the basis of the row transform set, the column transform set, and the permutation matrix; and performing a quantization and an entropy encoding on the RCT coefficient, wherein the permutation matrix represents a matrix obtained by permutating a row of an identity matrix."
+    ,"classification":false
+  },
+  {
+    "lens_id": "089-081-536-706-703",
+    "abstract": "Provided are a method and a device for detecting a flying spot on an edge of a depth image and an electronic device. The method includes the following. Image data of the depth image is collected. A normal vector of each pixel of the depth image is calculated according to the image data. An edge point of the depth image is calculated according to the normal vector with an edge detection operator. The edge point is taken as a seed point, and whether the seed point satisfies a growing condition is determined. Upon determining that the seed point satisfies the growing condition, the seed point is determined as the flying spot."
+    ,"classification":false
+  },
+  {
+    "lens_id": "131-755-280-915-534",
+    "abstract": "In one embodiment, a device obtains radio frequency (RF) characteristic data for a wireless client. The device inputs the RF characteristic data for the wireless client to a deep learning-based encoder. The device learns a latent space representation of the RF characteristic data from the encoder. The device uses the learned latent space representation as a unique signature to identify the wireless client in a wireless network."
+    ,"classification":false
+  },
+  {
+    "lens_id": "141-542-243-248-713",
+    "abstract": "A method and a system described herein provide optimizing image and/or video compression for machine perception. According to an aspect, the method comprises receiving a raw image frame from a camera sensor; detecting a predefined object in the raw image frame and marking a region around the predefined object within the raw image frame as ROI. Based on the ROI, a partitioning scheme, a prediction mode, and quantization parameter are determined for improving coding efficiency. Machine perception efficiency is improved by selecting a quantization parameter table used for compressing and encoding the raw image or video frame based on a selected machine vision task. The selection of the quantization parameter table is based on training of the selected machine vision task using cost function optimization."
+    ,"classification":false
+  },
+  {
+    "lens_id": "056-718-282-715-535",
+    "abstract": "Techniques for instance termination cleanup via auxiliary domains are described. A termination workflow is executed for a compute instance having graphics processing unit (GPU) access hosted in a cloud provider network. The termination workflow includes terminating the compute instance of the user, launching an auxiliary compute instance in the same slot, and executing a cleanup workflow by the auxiliary compute instance for the GPU. Upon the conclusion of the cleanup workflow, the state of the compute instance is updated to terminated, allowing for it to be relaunched."
+    ,"classification":false
+  },
+  {
+    "lens_id": "173-913-930-095-342",
+    "abstract": "A processor unit for multiply and accumulate (\u201cMAC\u201d) operations is provided. The present invention may include the processor unit having a plurality of MAC units for performing a set of MAC operations. The present invention may include each MAC unit having an execution unit and a one-write one-read (\u201c1W/1R\u201d) register file, where the 1W/1R register file may have at least one accumulator. The present invention may include the execution unit of each MAC unit being configured to perform a subset of MAC operations by computing a product of a set of values received from another register file of the processor unit and adding the computed product to the at least one accumulator. The present invention may include each MAC unit being configured to perform the respective subset of MAC operations in a single clock cycle."
+    ,"classification":true
+  }
+]
