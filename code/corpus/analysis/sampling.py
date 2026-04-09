@@ -287,7 +287,7 @@ def evaluate(
 if __name__ == "__main__":
     # Example usage:
     # sample("v6")
-    evaluate("v6")
+    # evaluate("v6")
 
     # evaluate(
     #     version="v6",
@@ -303,4 +303,19 @@ if __name__ == "__main__":
     #     hand_label_key="is_gpu_architecture_design_patent",
     #     hand_label_name="noah_old",
     # )
+
+    evaluate(
+        version="v6",
+        source_suffix="_anuragsample_twostage_evaluation.json",
+        hand_suffix="_anurag_manual_classifications.json",
+        hand_label_key="is_gpu_architecture_design_patent",
+        hand_label_name="anurag_new",
+    )
+    evaluate(
+        version="v6",
+        source_suffix="_sample_singleprompt_evaluation.json",
+        hand_suffix="_anurag_manual_classifications.json",
+        hand_label_key="is_gpu_architecture_design_patent",
+        hand_label_name="anurag_old",
+    )
     
