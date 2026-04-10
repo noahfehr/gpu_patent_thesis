@@ -149,7 +149,7 @@ def compare_predictions_to_labels(
     hand_label_name: str = "human",
     output_path: Optional[Path] = None,
 ) -> dict[str, Any]:
-    prediction_rows = load_jsonl(predictions_path)
+    prediction_rows = load_json(predictions_path)
     label_rows = load_json(labels_path)
 
     predictions_by_id = {row[ID_COL]: row for row in prediction_rows}
@@ -277,13 +277,13 @@ if __name__ == "__main__":
     # )
 
     # Example: compare new JSONL predictions to hand labels
-    # compare_predictions_to_labels(
-    #     predictions_path=RUNS_DIR / "v6__anurag_sample__two_stage__ts1__predictions.jsonl",
-    #     labels_path=ANALYSIS_DIR / "v6__anurag_manual_classifications.json",
-    #     prediction_label_key=LABEL_COL,
-    #     hand_label_key=LABEL_COL,
-    #     hand_label_name="anurag",
-    #     output_path=METRICS_DIR / "v6__anurag_sample__two_stage__ts1__comparison.json",
-    # )
+    compare_predictions_to_labels(
+        predictions_path=ANALYSIS_DIR / "legacy/v6_anuragsample_twostage_evaluation.json",
+        labels_path=ANALYSIS_DIR / "v6_anurag_manual_classifications.json",
+        prediction_label_key=LABEL_COL,
+        hand_label_key=LABEL_COL,
+        hand_label_name="anurag",
+        output_path=METRICS_DIR / "v6__anurag_sample__two_stage__ts1__comparison.json",
+    )
 
     pass
