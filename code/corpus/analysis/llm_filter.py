@@ -501,20 +501,20 @@ def run_patent_analysis_on_json(
 
 if __name__ == "__main__":
     # Full-corpus resumable run:
-    # run_patent_analysis(
-    #     dataset_version="v6",
-    #     run_scope="full",
-    #     prompt_version="ts1",
-    #     batch_size=100,
-    #     model="gpt-5-mini",
-    # )
-
-    # Re-run on an existing JSON sample:
-    run_patent_analysis_on_json(
-        input_filename="v6_anurag.json",
+    run_patent_analysis(
         dataset_version="v6",
-        run_scope="anurag_sample",
+        run_scope="full",
         prompt_version="ts1",
-        batch_size=50,
+        batch_size=100,
         model="gpt-5-mini",
     )
+
+    # Re-run on an existing JSON sample:
+    # run_patent_analysis_on_json(
+    #     input_filename="v6_anurag.json",
+    #     dataset_version="v6",
+    #     run_scope="anurag_sample",
+    #     prompt_version="ts1",
+    #     batch_size=50,
+    #     model="gpt-5-mini",
+    # )
