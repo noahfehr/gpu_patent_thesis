@@ -277,13 +277,21 @@ if __name__ == "__main__":
     # )
 
     # Example: compare new JSONL predictions to hand labels
+    # compare_predictions_to_labels(
+    #     predictions_path=ANALYSIS_DIR / "legacy/v6_anuragsample_twostage_evaluation.json",
+    #     labels_path=ANALYSIS_DIR / "v6_anurag_manual_classifications.json",
+    #     prediction_label_key=LABEL_COL,
+    #     hand_label_key=LABEL_COL,
+    #     hand_label_name="anurag",
+    #     output_path=METRICS_DIR / "v6__anurag_sample__two_stage__ts1__comparison.json",
+    # )
+    
     compare_predictions_to_labels(
-        predictions_path=ANALYSIS_DIR / "legacy/v6_anuragsample_twostage_evaluation.json",
-        labels_path=ANALYSIS_DIR / "v6_anurag_manual_classifications.json",
+        predictions_path=ANALYSIS_DIR / "legacy/v6_noahsample_twostage_evaluation.json",
+        labels_path=ANALYSIS_DIR / "v6_noah_manual_classifications.json",
         prediction_label_key=LABEL_COL,
         hand_label_key=LABEL_COL,
-        hand_label_name="anurag",
-        output_path=METRICS_DIR / "v6__anurag_sample__two_stage__ts1__comparison.json",
+        hand_label_name="noah",
+        output_path=METRICS_DIR / "v6__noah_sample__two_stage__ts1__comparison.json",
     )
-
     pass
