@@ -1,37 +1,43 @@
+from __future__ import annotations
+
+from dataclasses import replace
+from collections import Counter
+from pathlib import Path
+import itertools
+import os
+import subprocess
+import tempfile
+
 import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
-import tomotopy as tp
-import itertools
-import subprocess
-import tempfile
-import os
-from collections import Counter
-# Implemented based on stability metrics outlined here: https://arxiv.org/pdf/2410.23186v2
+
+from config import LDAConfig
+from model import fit_lda_run
+
+
+# Implemented based on stability metrics outlined here:
+# https://arxiv.org/pdf/2410.23186v2
+
+
 # -----------------------------
-# HELPERS (match repo behavior)
+# HELPERS
 # -----------------------------
 def row_normalize(A, eps=1e-12):
     A = np.asarray(A)
     return A / (A.sum(axis=1, keepdims=True) + eps)
 
+
 def cosine(u, v, eps=1e-12):
-    u = np.asarray(u); v = np.asarray(v)
+    u = np.asarray(u)
+    v = np.asarray(v)
     denom = (np.linalg.norm(u) * np.linalg.norm(v)) + eps
     return float(np.dot(u, v) / denom)
 
+
 def greedy_topic_alignment_cosine(post_words_run, post_words_ref):
     """
-    Greedy one-to-one matching to replication 1 using cosine similarity 
-    of topic-word probability vectors (nested-loop greedy, not Hungarian).
-
-    for each topic in the run (top_idx),
-      for each topic in reference (top_idx2),
-        compute cosine(run_topic, ref_topic)
-      take best ref topic not yet used; store in new_top_ordering[top_idx]
-
-    Returns:
-      new_top_ordering: length K, entries are reference-topic indices
+    Greedy one-to-one topic matching using cosine similarity of topic-word vectors.
     """
     K = post_words_ref.shape[0]
     new_top_ordering = [-1] * K
@@ -45,7 +51,6 @@ def greedy_topic_alignment_cosine(post_words_run, post_words_ref):
                 max_cos_vals[top_idx] = new_max
                 new_top_ordering[top_idx] = corresponding_idx
 
-    # Safety: fill any remaining -1 (should be rare) with unused refs
     used = set([i for i in new_top_ordering if i != -1])
     unused = [i for i in range(K) if i not in used]
     for i in range(K):
@@ -54,19 +59,15 @@ def greedy_topic_alignment_cosine(post_words_run, post_words_ref):
 
     return np.array(new_top_ordering, dtype=int)
 
+
 def omega_psych_via_r(X):
     """
-    Calls R psych::omega exactly as in tm_reliab.R:
-      suppressMessages(suppressWarnings(omega(data.frame(X), nfactors=1)))
-      returns omega.tot and mean(stats$sd) (used for their OmegaSE)
-
-    X is a 2D numpy array: rows are observations, cols are replications (items).
+    Calls R psych::omega and returns omega.tot and mean(stats$sd).
     """
     X = np.asarray(X)
     if X.ndim != 2 or X.shape[1] < 2:
         return (np.nan, np.nan)
 
-    # Write X to a temp CSV without headers (R will read.matrix)
     with tempfile.TemporaryDirectory() as td:
         csv_path = os.path.join(td, "x.csv")
         np.savetxt(csv_path, X, delimiter=",")
@@ -74,12 +75,8 @@ def omega_psych_via_r(X):
         r_code = r"""
         suppressMessages(suppressWarnings(library(psych)))
         x <- as.matrix(read.csv("%s", header=FALSE))
-        # match repo: omega(data.frame(do.call("cbind", ...)), nfactors=1)
-        # here x already is cbind'ed matrix across replications
         res <- suppressMessages(suppressWarnings(omega(as.data.frame(x), nfactors=1)))
         omega_tot <- res$omega.tot
-        # repo uses omega(... )$stats$sd and then mean() across topics
-        # stats$sd is a vector; return its mean as an analogue to their usage
         sd_mean <- mean(res$stats$sd)
         cat(sprintf("%%.17g,%%.17g\n", omega_tot, sd_mean))
         """ % (csv_path.replace("\\", "/"))
@@ -99,20 +96,10 @@ def omega_psych_via_r(X):
         omega_tot_str, sd_mean_str = out.split(",")
         return (float(omega_tot_str), float(sd_mean_str))
 
+
 def _extract_topic_word_matrix(model, vocab_index):
     """
     Extract topic-word probabilities into a fixed global vocabulary space.
-
-    Parameters
-    ----------
-    model : tp.LDAModel
-    vocab_index : dict[str, int]
-        Global token -> column index mapping.
-
-    Returns
-    -------
-    H : np.ndarray of shape (K, V)
-        Topic-word matrix in the fixed vocabulary space.
     """
     K = model.k
     V = len(vocab_index)
@@ -134,23 +121,10 @@ def _extract_topic_word_matrix(model, vocab_index):
 
     return H
 
+
 def _build_fixed_vocab(tokenized_docs, min_df=1):
     """
     Build a fixed corpus-wide vocabulary using document frequency.
-
-    Parameters
-    ----------
-    tokenized_docs : list[list[str]]
-        Tokenized documents.
-    min_df : int
-        Keep tokens appearing in at least min_df documents.
-
-    Returns
-    -------
-    vocab_list : list[str]
-        Fixed vocab in deterministic order.
-    vocab_index : dict[str, int]
-        Token -> column index.
     """
     df_counter = Counter()
     for doc in tokenized_docs:
@@ -160,74 +134,52 @@ def _build_fixed_vocab(tokenized_docs, min_df=1):
     vocab_list = sorted([tok for tok, df in df_counter.items() if df >= min_df])
     vocab_index = {tok: i for i, tok in enumerate(vocab_list)}
     return vocab_list, vocab_index
+
+
+def _topic_word_matrix_from_model(model, vocab_index):
+    H = _extract_topic_word_matrix(model, vocab_index)
+    return row_normalize(H)
+
+
+def _doc_topic_matrix_from_df(doc_topic_df: pd.DataFrame) -> np.ndarray:
+    topic_cols = sorted(
+        [c for c in doc_topic_df.columns if c.startswith("topic_")],
+        key=lambda x: int(x.split("_")[1]),
+    )
+    W = doc_topic_df[topic_cols].to_numpy(dtype=float)
+    return row_normalize(W)
+
+
 # -----------------------------
 # MAIN FUNCTION
 # -----------------------------
-def _build_model(n_topics, seed, **model_kwargs):
-    return tp.LDAModel(
-        k=n_topics,
-        seed=seed,
-        alpha=0.3,
-        eta=0.05,
-        **model_kwargs
-    )
-
-def _fit_and_extract(model, tokenized_docs, vocab_index, iterations=100):
-    """
-    Fit a tomotopy LDA model and extract W and H.
-
-    Parameters
-    ----------
-    model : tp.LDAModel
-    tokenized_docs : list[list[str]]
-    vocab_index : dict[str, int]
-    iterations : int
-
-    Returns
-    -------
-    W : np.ndarray
-        Document-topic matrix, shape (D, K)
-    H : np.ndarray
-        Topic-word matrix, shape (K, V), in fixed vocab space
-    """
-    for doc in tokenized_docs:
-        if doc:
-            model.add_doc(doc)
-
-    model.train(iterations)
-
-    W = np.array([doc.get_topic_dist() for doc in model.docs], dtype=float)
-    H = _extract_topic_word_matrix(model, vocab_index)
-
-    return W, H
-
-def compute_topic_stability(tokenized_docs, k_values, seeds, iterations=100, vocab_min_df=1, **model_kwargs):
+def compute_topic_stability(
+    tokenized_docs: list[list[str]],
+    lens_ids: list[str],
+    base_config: LDAConfig,
+    k_values: list[int],
+    seeds: list[int],
+    vocab_min_df: int = 1,
+):
     """
     Compute LDA topic model stability across different k values and random seeds.
 
-    Parameters
-    ----------
-    tokenized_docs : list[list[str]]
-        Tokenized documents used to fit the model.
-    k_values : list[int]
-        Numbers of topics to evaluate.
-    seeds : list[int]
-        Random seeds for repeated fits.
-    iterations : int, default=100
-        Number of Gibbs sampling iterations per fit.
-    vocab_min_df : int, default=1
-        Minimum corpus document frequency for the fixed comparison vocabulary.
-    model_kwargs :
-        Additional kwargs passed to tp.LDAModel.
+    This version reuses fit_lda_run(...) so each (k, seed) model is trained once
+    and both the stability metrics and doc-topic matrices come from the same fit.
 
     Returns
     -------
-    pd.DataFrame
-        Stability metrics for each k.
+    results_df : pd.DataFrame
+        One row per k with aggregated stability metrics.
+    artifacts : dict[tuple[int, int], dict]
+        Per-run artifacts keyed by (k, seed). Each value contains:
+        - metrics
+        - topic_words
+        - doc_topic_df
     """
     results = []
+    artifacts: dict[tuple[int, int], dict] = {}
 
-    # Fixed vocab for cross-run comparability
     vocab_list, vocab_index = _build_fixed_vocab(tokenized_docs, min_df=vocab_min_df)
     print(f"Fixed comparison vocab size: {len(vocab_list)}")
 
@@ -239,14 +191,26 @@ def compute_topic_stability(tokenized_docs, k_values, seeds, iterations=100, voc
         post_words_list = []
         post_words_ref = None
 
+        run_artifacts_for_k = []
+
         for seed in seeds:
-            model = _build_model(n_topics, seed, **model_kwargs)
-            W, H = _fit_and_extract(
-                model=model,
-                tokenized_docs=tokenized_docs,
-                vocab_index=vocab_index,
-                iterations=iterations
+            run_config = replace(base_config, k=n_topics, seed=seed)
+
+            run = fit_lda_run(
+                token_lists=tokenized_docs,
+                lens_ids=lens_ids,
+                config=run_config,
             )
+
+            artifacts[(n_topics, seed)] = {
+                "metrics": run["metrics"],
+                "topic_words": run["topic_words"],
+                "doc_topic_df": run["doc_topic_df"],
+            }
+
+            model = run["model"]
+            W = _doc_topic_matrix_from_df(run["doc_topic_df"])
+            H = _topic_word_matrix_from_model(model, vocab_index)
 
             H_prob = row_normalize(H)
             S = cosine_similarity(H_prob)
@@ -315,4 +279,4 @@ def compute_topic_stability(tokenized_docs, k_values, seeds, iterations=100, voc
             "mean_cosine": float(avg_mean_sim),
         })
 
-    return pd.DataFrame(results)
+    return pd.DataFrame(results), artifacts
