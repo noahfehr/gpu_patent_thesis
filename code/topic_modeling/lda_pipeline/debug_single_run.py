@@ -4,8 +4,90 @@ from config import LDAConfig
 from data import prepare_patent_corpus
 from model import fit_lda_run
 
+from label_topics import (
+    TopicLabelingConfig,
+    label_saved_run_outputs,
+)
 
-def main():
+def topic_labeling_test():
+    print("\n=== TOPIC LABELING DEMO ===")
+
+    # -----------------------------------
+    # LDA CONFIG (same as your pipeline)
+    # -----------------------------------
+    lda_config = LDAConfig(
+        version_prefix="v6",
+        predictions_path=Path("data/analysis/runs/v6__full__two_stage__ts1__predictions.jsonl"),
+        stopwords_path=Path("code/topic_modeling/lda_pipeline/custom_stopwords.txt"),
+        base_data_dir=Path("data/claims_added"),
+        text_column="claims",
+        id_column="lens_id",
+    )
+
+    # -----------------------------------
+    # LOAD CORPUS (needed for payloads)
+    # -----------------------------------
+    print("\nLoading corpus...")
+    df_docs = prepare_patent_corpus(lda_config)
+
+    print(f"Docs loaded: {len(df_docs)}")
+
+    # -----------------------------------
+    # SELECT ONE RUN (keep this small for testing)
+    # -----------------------------------
+    run_dir = Path("outputs/lda/runs")
+
+    # 👇 update this to your actual run
+    run_name = sorted(run_dir.glob("run_*"))[-1]
+    print(f"\nUsing run: {run_name}")
+
+    # pick ONE config to test
+    k = 20
+    seed = 0
+
+    doc_topic_path = run_name / "doc_topics" / f"k{k}_seed{seed}.parquet"
+    topic_words_path = run_name / "topic_words" / f"k{k}_seed{seed}.json"
+
+    assert doc_topic_path.exists(), f"Missing: {doc_topic_path}"
+    assert topic_words_path.exists(), f"Missing: {topic_words_path}"
+
+    # -----------------------------------
+    # LABELING CONFIG (your simplified setup)
+    # -----------------------------------
+    label_config = TopicLabelingConfig(
+        model="gpt-5-mini",
+        n_passes=3,
+        top_n_docs=3,
+        excerpt_chars=1500,
+    )
+
+    # -----------------------------------
+    # RUN LABELING
+    # -----------------------------------
+    print("\nRunning topic labeling...")
+
+    results = label_saved_run_outputs(
+        df_docs=df_docs,
+        doc_topic_path=doc_topic_path,
+        topic_words_path=topic_words_path,
+        output_dir=run_name / "topic_labels" / f"k{k}_seed{seed}",
+        config=label_config,
+    )
+
+    # -----------------------------------
+    # QUICK INSPECTION
+    # -----------------------------------
+    print("\n=== SAMPLE OUTPUT ===")
+
+    for r in results[:5]:
+        print("\n-------------------------")
+        print(f"Topic {r['topic_id']}")
+        print(f"Label: {r['label']}")
+        print(f"Candidates: {r['candidate_labels']}")
+        print(f"Explanation: {r['explanation'][:200]}...")
+
+    print("\n=== DONE ===")
+def lda_run_test():
     print("\n=== DEBUG SINGLE RUN ===")
 
     # -----------------------------------
@@ -101,4 +183,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    topic_labeling_test()
