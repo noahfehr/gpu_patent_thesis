@@ -73,6 +73,3 @@ class LDAConfig:
 
     # Number of top words to retrieve per topic for inspection/export.
     top_words_n: int = 15
-
-    # Number of highest-weight documents to retrieve per topic for inspection/LLM labeling.
-    top_docs_n: int = 5

@@ -59,7 +59,6 @@ def main() -> None:
         seed=42,           # placeholder; actual sweep uses seeds below
         iterations=100,
         top_words_n=15,
-        top_docs_n=5,
     )
 
     k_values = [20, 30, 40, 50]

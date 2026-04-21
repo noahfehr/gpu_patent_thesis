@@ -109,7 +109,6 @@ def lda_run_test():
         seed=0,
         iterations=50,     # shorter for speed
         top_words_n=10,
-        top_docs_n=3,
     )
 
     # -----------------------------------
