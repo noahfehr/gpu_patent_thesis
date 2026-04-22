@@ -138,6 +138,46 @@ def add_bigrams(tokens: list[str], bigram_vocab: set[tuple[str, str]]) -> list[s
     return out
 
 
+def filter_tokens_by_document_frequency(
+    token_lists: list[list[str]],
+    min_df: int,
+    max_df: float | int | None = None,
+) -> tuple[list[list[str]], int]:
+    """
+    Filter tokens by corpus document frequency.
+
+    - min_df: keep tokens appearing in at least this many documents
+    - max_df:
+      - float in (0, 1]: keep tokens appearing in at most this share of documents
+      - int >= 1: keep tokens appearing in at most this many documents
+      - None: no upper cutoff
+    """
+    if not token_lists:
+        return token_lists, 0
+
+    doc_freq: Counter[str] = Counter()
+    for tokens in token_lists:
+        for tok in set(tokens):
+            doc_freq[tok] += 1
+
+    n_docs = len(token_lists)
+    max_df_count: int | None = None
+    if max_df is not None:
+        if isinstance(max_df, float) and 0 < max_df <= 1:
+            max_df_count = max(1, int(n_docs * max_df))
+        else:
+            max_df_count = int(max_df)
+
+    vocab = {
+        tok for tok, df in doc_freq.items()
+        if df >= min_df and (max_df_count is None or df <= max_df_count)
+    }
+
+    filtered = [[tok for tok in tokens if tok in vocab] for tokens in token_lists]
+    removed = len(doc_freq) - len(vocab)
+    return filtered, removed
+
+
 def prepare_patent_corpus(config: LDAConfig) -> pd.DataFrame:
     """
     Full preprocessing pipeline:
@@ -154,9 +194,6 @@ def prepare_patent_corpus(config: LDAConfig) -> pd.DataFrame:
     keep_lens_ids = load_keep_lens_ids(config.predictions_path)
     df = filter_patents_to_design_set(df, keep_lens_ids, config.id_column)
 
-    tensor_count = df["text"].str.contains("tensor", case=False, na=False).sum()
-    print(f"Patents containing 'tensor': {tensor_count}")
-
     stop_words = load_stopwords(config.stopwords_path)
 
     df["text_clean"] = df["text"].map(clean_text)
@@ -170,17 +207,19 @@ def prepare_patent_corpus(config: LDAConfig) -> pd.DataFrame:
     )
 
     print(f"Frequent bigrams kept: {len(bigram_vocab)}")
-    print("Sample bigrams:", [f"{a}_{b}" for a, b in list(sorted(bigram_vocab))[:20]])
 
     df["tokens"] = df["tokens_unigram"].map(lambda toks: add_bigrams(toks, bigram_vocab))
+    filtered_tokens, removed_vocab = filter_tokens_by_document_frequency(
+        df["tokens"].tolist(),
+        min_df=config.min_df,
+        max_df=config.max_df,
+    )
+    df["tokens"] = filtered_tokens
     df = df[df["tokens"].map(len) > 0].copy()
 
+    print(f"Vocabulary items removed by df filters: {removed_vocab}")
     print(f"Usable documents: {len(df)}")
     print(f"Average unigram tokens per doc: {df['tokens_unigram'].map(len).mean():.1f}")
     print(f"Average tokens per doc after bigrams: {df['tokens'].map(len).mean():.1f}")
-
-    for i in range(min(3, len(df))):
-        print(f"\nDoc {i} sample tokens:")
-        print(df.iloc[i]["tokens"][:40])
 
     return df

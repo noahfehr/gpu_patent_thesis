@@ -1,0 +1,101 @@
+{
+  "n_docs": 5309,
+  "k": 30,
+  "min_df": 20,
+  "max_df": 0.18,
+  "iterations": 1500,
+  "alpha_values": [
+    0.05,
+    0.1,
+    0.3,
+    0.5
+  ],
+  "eta_values": [
+    0.005,
+    0.01,
+    0.05,
+    0.1
+  ],
+  "stability_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "topic_threshold": 0.05,
+  "top_n_words": 10,
+  "chosen_alpha": 0.5,
+  "chosen_eta": 0.01,
+  "alpha_topic_sparsity_summary": [
+    {
+      "alpha": 0.05,
+      "mean": 4.643812394047843,
+      "median": 5.0,
+      "min": 1,
+      "max": 11
+    },
+    {
+      "alpha": 0.1,
+      "mean": 4.60011301563383,
+      "median": 5.0,
+      "min": 1,
+      "max": 11
+    },
+    {
+      "alpha": 0.3,
+      "mean": 4.663590129967979,
+      "median": 5.0,
+      "min": 1,
+      "max": 11
+    },
+    {
+      "alpha": 0.5,
+      "mean": 4.6413637219815405,
+      "median": 5.0,
+      "min": 1,
+      "max": 11
+    }
+  ],
+  "eta_topic_concentration_summary": [
+    {
+      "eta": 0.005,
+      "mean": 0.36168201866870126,
+      "median": 0.37566110398620367,
+      "min": 0.20882407948374748,
+      "max": 0.5103067355230451
+    },
+    {
+      "eta": 0.01,
+      "mean": 0.3612758328206837,
+      "median": 0.36814115941524506,
+      "min": 0.1463865777477622,
+      "max": 0.5720181446522474
+    },
+    {
+      "eta": 0.05,
+      "mean": 0.3454334115299086,
+      "median": 0.3489284492097795,
+      "min": 0.21967211551964283,
+      "max": 0.49303062446415424
+    },
+    {
+      "eta": 0.1,
+      "mean": 0.3519330343386779,
+      "median": 0.34957937337458134,
+      "min": 0.20465416088700294,
+      "max": 0.5267658457159996
+    }
+  ],
+  "best_stability_config": {
+    "alpha": 0.05,
+    "eta": 0.05,
+    "omega": 0.432993029689431
+  },
+  "caption_logic": {
+    "alpha": "We select alpha to reflect the assumption that patents are centered on a small number of architectural concepts, rather than diffuse mixtures.",
+    "eta": "Lower eta yields sharper, more interpretable topics corresponding to distinct architectural primitives.",
+    "stability": "We select hyperparameters that maximize topic stability across runs."
+  },
+  "outputs_dir": "/Users/noahfehr/dev/gpu_patent_thesis/code/topic_modeling/lda_pipeline/motivation/outputs/alpha_eta"
+}

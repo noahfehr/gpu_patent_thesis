@@ -117,7 +117,6 @@ def call_openai_labeling(
     Call OpenAI for one topic label with structured JSON output.
     Uses the Responses API.
     """
-    print(f"Calling OpenAI for topic labeling...")
     response = client.responses.create(
         model=config.model,
         input=[
@@ -147,8 +146,6 @@ def call_openai_labeling(
             }
         },
     )
-    print("Request returned", flush=True)
-    print(response.output_text, flush=True)    
     text = _extract_response_text(response)
     return normalize_label_response(json.loads(text))
 
@@ -247,7 +244,6 @@ def label_topic_from_payload(
             result["pass_index"] = pass_idx
             candidates.append(result)
         except Exception as e:
-            print(str(e))
             errors.append({"pass_index": pass_idx, "error": str(e)})
 
     if not candidates:
@@ -332,7 +328,7 @@ def label_all_topics(
     results = []
     for payload in payloads:
         topic_id = payload["topic_id"]
-        print(f"Labeling topic {topic_id}")
+        print(f"Labeling topic {topic_id + 1}/{len(payloads)}")
         result = label_topic_from_payload(payload, config=config)
         results.append(result)
 

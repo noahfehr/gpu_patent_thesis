@@ -1,0 +1,17 @@
+{
+  "version_prefix": "v6",
+  "n_docs": 5309,
+  "n_unique_tokens_before_df_filter": 30594,
+  "avg_tokens_per_doc_before_df_filter": 631.6253531738557,
+  "n_docs_after_df_filter": 5309,
+  "n_unique_tokens_passed_to_lda": 5534,
+  "avg_tokens_per_doc_passed_to_lda": 393.1670747786777,
+  "vocabulary_items_removed_by_df_filters": 25060,
+  "min_df": 20,
+  "max_df": 0.18,
+  "max_df_count": 955,
+  "min_bigram_count": 20,
+  "json_output": "/Users/noahfehr/dev/gpu_patent_thesis/code/topic_modeling/lda_pipeline/motivation/outputs/v6_document_frequency.json",
+  "histogram_output": "/Users/noahfehr/dev/gpu_patent_thesis/code/topic_modeling/lda_pipeline/motivation/outputs/v6_document_frequency_histogram.png",
+  "low_df_zoom_histogram_output": "/Users/noahfehr/dev/gpu_patent_thesis/code/topic_modeling/lda_pipeline/motivation/outputs/v6_document_frequency_histogram_lt20docs.png"
+}

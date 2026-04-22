@@ -21,19 +21,20 @@ def train_lda(token_lists: list[list[str]], config: LDAConfig) -> tp.LDAModel:
         alpha=config.alpha,
         eta=config.eta,
         min_df=config.min_df,
-        rm_top=config.rm_top,
         seed=config.seed,
     )
 
     for tokens in token_lists:
         mdl.add_doc(tokens)
 
-    print(f"Num docs in model: {len(mdl.docs)}")
-    print(f"Vocab size: {mdl.num_vocabs}")
+    print(
+        f"Training LDA: docs={len(mdl.docs)}, k={config.k}, "
+        f"seed={config.seed}, vocab={mdl.num_vocabs}"
+    )
 
     for i in range(0, config.iterations, 10):
         mdl.train(10)
-        if (i + 10) % 100 == 0 or i == 0:
+        if (i + 10) % 200 == 0 or (i + 10) == config.iterations:
             print(
                 f"Iteration: {i + 10:04d} "
                 f"LL per word: {mdl.ll_per_word:.4f}"

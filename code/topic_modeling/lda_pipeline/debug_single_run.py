@@ -105,7 +105,7 @@ def lda_run_test():
         alpha=0.3,
         eta=0.01,
         min_df=10,
-        rm_top=70,
+        max_df=0.7,
         seed=0,
         iterations=50,     # shorter for speed
         top_words_n=10,

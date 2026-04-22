@@ -15,6 +15,8 @@ def _parse_seeds(raw_seeds: str | None, n_seeds: int) -> list[int]:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    default_config = LDAConfig()
+
     parser = argparse.ArgumentParser(
         description=(
             "Run one LDA configuration across multiple seeds, compute stability, "
@@ -22,27 +24,27 @@ def build_parser() -> argparse.ArgumentParser:
         )
     )
 
-    parser.add_argument("--version-prefix", default="v6")
+    parser.add_argument("--version-prefix", default=default_config.version_prefix)
     parser.add_argument(
         "--predictions-path",
-        default="data/analysis/runs/v6__full__two_stage__ts1__predictions.jsonl",
+        default=str(default_config.predictions_path),
     )
     parser.add_argument(
         "--stopwords-path",
-        default="code/topic_modeling/lda_pipeline/custom_stopwords.txt",
+        default=str(default_config.stopwords_path),
     )
-    parser.add_argument("--base-data-dir", default="data/claims_added")
-    parser.add_argument("--text-column", default="claims")
-    parser.add_argument("--id-column", default="lens_id")
+    parser.add_argument("--base-data-dir", default=str(default_config.base_data_dir))
+    parser.add_argument("--text-column", default=default_config.text_column)
+    parser.add_argument("--id-column", default=default_config.id_column)
 
     parser.add_argument("--k", type=int, required=True)
     parser.add_argument("--alpha", type=float, required=True)
     parser.add_argument("--eta", type=float, required=True)
-    parser.add_argument("--min-bigram-count", type=int, default=15)
-    parser.add_argument("--min-df", type=int, default=10)
-    parser.add_argument("--rm-top", type=int, default=70)
-    parser.add_argument("--iterations", type=int, default=1000)
-    parser.add_argument("--top-words-n", type=int, default=15)
+    parser.add_argument("--min-bigram-count", type=int, default=default_config.min_bigram_count)
+    parser.add_argument("--min-df", type=int, default=default_config.min_df)
+    parser.add_argument("--max-df", type=float, default=default_config.max_df)
+    parser.add_argument("--iterations", type=int, default=default_config.iterations)
+    parser.add_argument("--top-words-n", type=int, default=default_config.top_words_n)
 
     parser.add_argument("--n-seeds", type=int, default=5)
     parser.add_argument(
@@ -92,7 +94,7 @@ def main() -> None:
         alpha=args.alpha,
         eta=args.eta,
         min_df=args.min_df,
-        rm_top=args.rm_top,
+        max_df=args.max_df,
         seed=seeds[0],
         iterations=args.iterations,
         top_words_n=args.top_words_n,

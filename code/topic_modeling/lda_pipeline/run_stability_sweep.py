@@ -55,7 +55,7 @@ def main() -> None:
         alpha=0.3,
         eta=0.01,
         min_df=10,
-        rm_top=70,
+        max_df=0.7,
         seed=42,           # placeholder; actual sweep uses seeds below
         iterations=100,
         top_words_n=15,
