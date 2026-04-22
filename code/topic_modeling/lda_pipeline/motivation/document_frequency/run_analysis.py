@@ -9,26 +9,23 @@ import sys
 import matplotlib.pyplot as plt
 import pandas as pd
 
-PIPELINE_DIR = Path(__file__).resolve().parents[1]
+PIPELINE_DIR = Path(__file__).resolve().parents[2]
 if str(PIPELINE_DIR) not in sys.path:
     sys.path.insert(0, str(PIPELINE_DIR))
 
 from config import LDAConfig, PROJECT_ROOT
 from data import (
-    add_bigrams,
-    build_bigram_vocab,
     filter_tokens_by_document_frequency,
-    filter_patents_to_design_set,
-    load_keep_lens_ids,
     load_patent_dataframe,
     load_stopwords,
-    clean_text,
-    tokenize_unigrams,
+    load_keep_lens_ids,
+    filter_patents_to_design_set,
+    tokenize_patent_dataframe,
 )
 
 
 DEFAULT_OUTPUT_DIR = (
-    PROJECT_ROOT / "code" / "topic_modeling" / "lda_pipeline" / "motivation" / "outputs"
+    PROJECT_ROOT / "code" / "topic_modeling" / "lda_pipeline" / "motivation" / "document_frequency" / "outputs"
 )
 
 
@@ -43,20 +40,14 @@ def prepare_corpus_before_df_filter(config: LDAConfig) -> pd.DataFrame:
     df = filter_patents_to_design_set(df, keep_lens_ids, config.id_column)
 
     stop_words = load_stopwords(config.stopwords_path)
-
-    df["text_clean"] = df["text"].map(clean_text)
-    df["tokens_unigram"] = df["text"].map(lambda s: tokenize_unigrams(s, stop_words))
-    df = df[df["tokens_unigram"].map(len) > 0].copy()
-
-    bigram_vocab = build_bigram_vocab(
-        df["tokens_unigram"].tolist(),
-        min_count=config.min_bigram_count,
+    df, token_stats = tokenize_patent_dataframe(
+        df=df,
+        config=config,
+        stop_words=stop_words,
+        apply_df_filters=False,
+        verbose=False,
     )
-    df["tokens"] = df["tokens_unigram"].map(lambda toks: add_bigrams(toks, bigram_vocab))
-    df = df[df["tokens"].map(len) > 0].copy()
-
-    print(f"Frequent bigrams kept: {len(bigram_vocab)}")
-
+    print(f"Frequent bigrams kept: {token_stats['bigram_vocab_size']}")
     return df
 
 

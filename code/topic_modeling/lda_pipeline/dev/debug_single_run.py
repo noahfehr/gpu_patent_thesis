@@ -1,4 +1,9 @@
 from pathlib import Path
+import sys
+
+PIPELINE_DIR = Path(__file__).resolve().parents[1]
+if str(PIPELINE_DIR) not in sys.path:
+    sys.path.insert(0, str(PIPELINE_DIR))
 
 from config import LDAConfig
 from data import prepare_patent_corpus
@@ -15,14 +20,7 @@ def topic_labeling_test():
     # -----------------------------------
     # LDA CONFIG (same as your pipeline)
     # -----------------------------------
-    lda_config = LDAConfig(
-        version_prefix="v6",
-        predictions_path=Path("data/analysis/runs/v6__full__two_stage__ts1__predictions.jsonl"),
-        stopwords_path=Path("code/topic_modeling/lda_pipeline/custom_stopwords.txt"),
-        base_data_dir=Path("data/claims_added"),
-        text_column="claims",
-        id_column="lens_id",
-    )
+    lda_config = LDAConfig()
 
     # -----------------------------------
     # LOAD CORPUS (needed for payloads)
@@ -93,13 +91,14 @@ def lda_run_test():
     # -----------------------------------
     # Small config for quick test
     # -----------------------------------
+    default_config = LDAConfig()
     config = LDAConfig(
-        version_prefix="v6",
-        predictions_path=Path("data/analysis/runs/v6__full__two_stage__ts1__predictions.jsonl"),
-        stopwords_path=Path("code/topic_modeling/lda_pipeline/custom_stopwords.txt"),
-        base_data_dir=Path("data/claims_added"),
-        text_column="claims",
-        id_column="lens_id",
+        version_prefix=default_config.version_prefix,
+        predictions_path=default_config.predictions_path,
+        stopwords_path=default_config.stopwords_path,
+        base_data_dir=default_config.base_data_dir,
+        text_column=default_config.text_column,
+        id_column=default_config.id_column,
         min_bigram_count=15,
         k=20,              # small test
         alpha=0.3,

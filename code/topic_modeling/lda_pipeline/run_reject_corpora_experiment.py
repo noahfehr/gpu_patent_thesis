@@ -8,13 +8,8 @@ import pandas as pd
 
 from config import LDAConfig
 from data import (
-    add_bigrams,
-    build_bigram_vocab,
-    filter_tokens_by_document_frequency,
     load_patent_dataframe,
-    load_stopwords,
-    clean_text,
-    tokenize_unigrams,
+    tokenize_patent_dataframe,
 )
 from experiment import run_labeled_stability_experiment_on_prepared_docs
 from label_topics import TopicLabelingConfig
@@ -72,36 +67,13 @@ def prepare_subset_corpus(
     print(f"\n=== Preparing subset: {subset_name} ===")
     print(f"Subset size before token filtering: {len(df)} / {full_count}")
 
-    stop_words = load_stopwords(base_config.stopwords_path)
+    df, token_stats = tokenize_patent_dataframe(df=df, config=base_config, verbose=False)
 
-    df["text_clean"] = df["text"].map(clean_text)
-    df["tokens_unigram"] = df["text"].map(lambda s: tokenize_unigrams(s, stop_words))
-    df = df[df["tokens_unigram"].map(len) > 0].copy()
-
-    bigram_vocab = build_bigram_vocab(
-        df["tokens_unigram"].tolist(),
-        min_count=base_config.min_bigram_count,
-    )
-
-    print(f"Frequent bigrams kept for {subset_name}: {len(bigram_vocab)}")
-    print(
-        "Sample bigrams:",
-        [f"{a}_{b}" for a, b in list(sorted(bigram_vocab))[:20]],
-    )
-
-    df["tokens"] = df["tokens_unigram"].map(lambda toks: add_bigrams(toks, bigram_vocab))
-    filtered_tokens, removed_vocab = filter_tokens_by_document_frequency(
-        df["tokens"].tolist(),
-        min_df=base_config.min_df,
-        max_df=base_config.max_df,
-    )
-    df["tokens"] = filtered_tokens
-    df = df[df["tokens"].map(len) > 0].copy()
-
-    print(f"Vocabulary items removed by df filters in {subset_name}: {removed_vocab}")
     print(f"Usable documents in {subset_name}: {len(df)}")
-    print(f"Average unigram tokens per doc: {df['tokens_unigram'].map(len).mean():.1f}")
-    print(f"Average tokens per doc after bigrams: {df['tokens'].map(len).mean():.1f}")
+    print(f"Frequent bigrams kept: {token_stats['bigram_vocab_size']}")
+    print(f"Vocabulary items removed by df filters: {token_stats['removed_vocab_by_df_filters']}")
+    print(f"Average unigram tokens per doc: {token_stats['avg_unigram_tokens_per_doc']:.1f}")
+    print(f"Average tokens per doc after bigrams: {token_stats['avg_tokens_per_doc']:.1f}")
 
     metadata = {
         "subset_name": subset_name,
@@ -135,9 +107,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--text-column", default=default_config.text_column)
     parser.add_argument("--id-column", default=default_config.id_column)
 
-    parser.add_argument("--k", type=int, required=True)
-    parser.add_argument("--alpha", type=float, required=True)
-    parser.add_argument("--eta", type=float, required=True)
+    parser.add_argument("--k", type=int, default=default_config.k)
+    parser.add_argument("--alpha", type=float, default=default_config.alpha)
+    parser.add_argument("--eta", type=float, default=default_config.eta)
     parser.add_argument("--min-bigram-count", type=int, default=default_config.min_bigram_count)
     parser.add_argument("--min-df", type=int, default=default_config.min_df)
     parser.add_argument("--max-df", type=float, default=default_config.max_df)
@@ -199,12 +171,12 @@ def main() -> None:
         (
             "stage1_rejects_not_accelerator_related",
             lambda df: ~df["is_accelerator_relevant"],
-            "All v6 patents rejected at stage 1 as not accelerator related.",
+            "All patents rejected at stage 1 as not accelerator related.",
         ),
         (
             "stage2_rejects_accelerator_related_not_hardware",
             lambda df: df["is_accelerator_relevant"] & ~df["is_accelerator_hardware"],
-            "All v6 patents that passed stage 1 but were rejected at stage 2 as not hardware related.",
+            "All patents that passed stage 1 but were rejected at stage 2 as not hardware related.",
         ),
     ]
 

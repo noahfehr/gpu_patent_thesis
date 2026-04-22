@@ -54,7 +54,7 @@ class LDAConfig:
 
     # Dirichlet prior over document-topic distributions.
     # Lower values -> documents concentrate on fewer topics.
-    alpha: float = 0.5
+    alpha: float = 0.05
 
     # Dirichlet prior over topic-word distributions.
     # Lower values -> topics concentrate on fewer, more distinctive words.

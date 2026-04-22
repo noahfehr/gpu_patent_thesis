@@ -149,8 +149,10 @@ def _run_labeled_stability_experiment_from_prepared_docs(
         output_dir=label_output_dir,
     )
 
-    print("\n===== STABILITY RESULTS =====")
-    print(results_df)
+    print(
+        f"Stability result: omega={results_df.iloc[0]['omega']:.3f}, "
+        f"omega_se={results_df.iloc[0]['omega_se']:.4f}"
+    )
     print(f"\nDone. Outputs written to: {run_dir}")
 
     return {

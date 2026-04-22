@@ -355,6 +355,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser.add_argument("--alpha-values", default="0.05,0.1,0.3,0.5")
     parser.add_argument("--eta-values", default="0.005,0.01,0.05,0.1")
+    parser.add_argument("--chosen-alpha", type=float, default=defaults.alpha)
+    parser.add_argument("--chosen-eta", type=float, default=defaults.eta)
     parser.add_argument("--analysis-seed", type=int, default=defaults.seed)
     parser.add_argument("--stability-seeds", default="0,1,2,3,4")
     parser.add_argument("--topic-threshold", type=float, default=0.05)
@@ -381,8 +383,8 @@ def main() -> None:
         id_column=args.id_column,
         min_bigram_count=args.min_bigram_count,
         k=args.k,
-        alpha=min(alpha_values, key=lambda value: abs(value - LDAConfig().alpha)),
-        eta=min(eta_values, key=lambda value: abs(value - LDAConfig().eta)),
+        alpha=args.chosen_alpha,
+        eta=args.chosen_eta,
         min_df=args.min_df,
         max_df=args.max_df,
         seed=args.analysis_seed,

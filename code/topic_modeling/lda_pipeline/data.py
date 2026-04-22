@@ -178,6 +178,64 @@ def filter_tokens_by_document_frequency(
     return filtered, removed
 
 
+def tokenize_patent_dataframe(
+    df: pd.DataFrame,
+    config: LDAConfig,
+    stop_words: set[str] | None = None,
+    apply_df_filters: bool = True,
+    verbose: bool = True,
+) -> tuple[pd.DataFrame, dict[str, float | int]]:
+    """
+    Apply the shared tokenization / bigram / optional df-filter pipeline to a dataframe.
+
+    The dataframe must already contain a `text` column and the configured id column.
+    """
+    if "text" not in df.columns:
+        raise KeyError("Expected a 'text' column in the dataframe.")
+
+    stop_words = stop_words if stop_words is not None else load_stopwords(config.stopwords_path)
+
+    df = df.copy()
+    df["text_clean"] = df["text"].map(clean_text)
+    df["tokens_unigram"] = df["text"].map(lambda s: tokenize_unigrams(s, stop_words))
+    df = df[df["tokens_unigram"].map(len) > 0].copy()
+
+    bigram_vocab = build_bigram_vocab(
+        df["tokens_unigram"].tolist(),
+        min_count=config.min_bigram_count,
+    )
+    df["tokens"] = df["tokens_unigram"].map(lambda toks: add_bigrams(toks, bigram_vocab))
+
+    removed_vocab = 0
+    if apply_df_filters:
+        filtered_tokens, removed_vocab = filter_tokens_by_document_frequency(
+            df["tokens"].tolist(),
+            min_df=config.min_df,
+            max_df=config.max_df,
+        )
+        df["tokens"] = filtered_tokens
+
+    df = df[df["tokens"].map(len) > 0].copy()
+
+    stats = {
+        "bigram_vocab_size": int(len(bigram_vocab)),
+        "removed_vocab_by_df_filters": int(removed_vocab),
+        "usable_documents": int(len(df)),
+        "avg_unigram_tokens_per_doc": float(df["tokens_unigram"].map(len).mean()) if len(df) else 0.0,
+        "avg_tokens_per_doc": float(df["tokens"].map(len).mean()) if len(df) else 0.0,
+    }
+
+    if verbose:
+        print(f"Frequent bigrams kept: {stats['bigram_vocab_size']}")
+        if apply_df_filters:
+            print(f"Vocabulary items removed by df filters: {stats['removed_vocab_by_df_filters']}")
+        print(f"Usable documents: {stats['usable_documents']}")
+        print(f"Average unigram tokens per doc: {stats['avg_unigram_tokens_per_doc']:.1f}")
+        print(f"Average tokens per doc after bigrams: {stats['avg_tokens_per_doc']:.1f}")
+
+    return df, stats
+
+
 def prepare_patent_corpus(config: LDAConfig) -> pd.DataFrame:
     """
     Full preprocessing pipeline:
@@ -194,32 +252,5 @@ def prepare_patent_corpus(config: LDAConfig) -> pd.DataFrame:
     keep_lens_ids = load_keep_lens_ids(config.predictions_path)
     df = filter_patents_to_design_set(df, keep_lens_ids, config.id_column)
 
-    stop_words = load_stopwords(config.stopwords_path)
-
-    df["text_clean"] = df["text"].map(clean_text)
-    df["tokens_unigram"] = df["text"].map(lambda s: tokenize_unigrams(s, stop_words))
-
-    df = df[df["tokens_unigram"].map(len) > 0].copy()
-
-    bigram_vocab = build_bigram_vocab(
-        df["tokens_unigram"].tolist(),
-        min_count=config.min_bigram_count,
-    )
-
-    print(f"Frequent bigrams kept: {len(bigram_vocab)}")
-
-    df["tokens"] = df["tokens_unigram"].map(lambda toks: add_bigrams(toks, bigram_vocab))
-    filtered_tokens, removed_vocab = filter_tokens_by_document_frequency(
-        df["tokens"].tolist(),
-        min_df=config.min_df,
-        max_df=config.max_df,
-    )
-    df["tokens"] = filtered_tokens
-    df = df[df["tokens"].map(len) > 0].copy()
-
-    print(f"Vocabulary items removed by df filters: {removed_vocab}")
-    print(f"Usable documents: {len(df)}")
-    print(f"Average unigram tokens per doc: {df['tokens_unigram'].map(len).mean():.1f}")
-    print(f"Average tokens per doc after bigrams: {df['tokens'].map(len).mean():.1f}")
-
+    df, _ = tokenize_patent_dataframe(df=df, config=config)
     return df

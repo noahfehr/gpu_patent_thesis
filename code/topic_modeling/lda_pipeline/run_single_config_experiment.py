@@ -37,9 +37,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--text-column", default=default_config.text_column)
     parser.add_argument("--id-column", default=default_config.id_column)
 
-    parser.add_argument("--k", type=int, required=True)
-    parser.add_argument("--alpha", type=float, required=True)
-    parser.add_argument("--eta", type=float, required=True)
+    parser.add_argument("--k", type=int, default=default_config.k)
+    parser.add_argument("--alpha", type=float, default=default_config.alpha)
+    parser.add_argument("--eta", type=float, default=default_config.eta)
     parser.add_argument("--min-bigram-count", type=int, default=default_config.min_bigram_count)
     parser.add_argument("--min-df", type=int, default=default_config.min_df)
     parser.add_argument("--max-df", type=float, default=default_config.max_df)

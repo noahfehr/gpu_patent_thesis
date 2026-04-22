@@ -4,8 +4,13 @@ import json
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
+import sys
 
 import pandas as pd
+
+PIPELINE_DIR = Path(__file__).resolve().parents[1]
+if str(PIPELINE_DIR) not in sys.path:
+    sys.path.insert(0, str(PIPELINE_DIR))
 
 from stability import compute_topic_stability
 from config import LDAConfig
@@ -43,22 +48,17 @@ def summarize_stability_results(results_df: pd.DataFrame) -> pd.DataFrame:
 
 
 def main() -> None:
+    default_config = LDAConfig()
     config = LDAConfig(
-        version_prefix="v6",
-        predictions_path=Path("data/analysis/runs/v6__full__two_stage__ts1__predictions.jsonl"),
-        stopwords_path=Path("code/topic_modeling/lda_pipeline/custom_stopwords.txt"),
-        base_data_dir=Path("data/claims_added"),
-        text_column="claims",
-        id_column="lens_id",
-        min_bigram_count=15,
-        k=30,              # placeholder; actual sweep uses k_values below
-        alpha=0.3,
-        eta=0.01,
-        min_df=10,
-        max_df=0.7,
-        seed=42,           # placeholder; actual sweep uses seeds below
-        iterations=100,
-        top_words_n=15,
+        k=default_config.k,
+        alpha=default_config.alpha,
+        eta=default_config.eta,
+        min_df=default_config.min_df,
+        max_df=default_config.max_df,
+        min_bigram_count=default_config.min_bigram_count,
+        iterations=default_config.iterations,
+        top_words_n=default_config.top_words_n,
+        seed=default_config.seed,
     )
 
     k_values = [20, 30, 40, 50]
@@ -138,9 +138,6 @@ def main() -> None:
 
         with open(topic_words_dir / f"k{k}_seed{seed}.json", "w") as f:
             json.dump(topic_words, f, indent=2)
-
-    print("\n===== RAW RESULTS =====")
-    print(results_df)
 
     print("\n===== SUMMARY BY K =====")
     print(summary_df.sort_values("k"))

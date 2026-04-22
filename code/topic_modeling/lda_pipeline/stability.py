@@ -150,6 +150,166 @@ def _doc_topic_matrix_from_df(doc_topic_df: pd.DataFrame) -> np.ndarray:
     return row_normalize(W)
 
 
+def build_fixed_vocab(tokenized_docs: list[list[str]], min_df: int = 1) -> tuple[list[str], dict[str, int]]:
+    """
+    Public wrapper for building a shared corpus-wide vocabulary.
+    """
+    return _build_fixed_vocab(tokenized_docs, min_df=min_df)
+
+
+def topic_word_matrix_from_model(model, vocab_index: dict[str, int]) -> np.ndarray:
+    """
+    Public wrapper to project a model's topic-word distributions into a fixed vocabulary.
+    """
+    return _topic_word_matrix_from_model(model, vocab_index)
+
+
+def doc_topic_matrix_from_df(doc_topic_df: pd.DataFrame) -> np.ndarray:
+    """
+    Public wrapper for extracting a row-normalized document-topic matrix.
+    """
+    return _doc_topic_matrix_from_df(doc_topic_df)
+
+
+def compute_topic_similarity_matrix(phi_a: np.ndarray, phi_b: np.ndarray) -> np.ndarray:
+    """
+    Compute a full topic-topic cosine similarity matrix between two runs.
+    """
+    return cosine_similarity(row_normalize(phi_a), row_normalize(phi_b))
+
+
+def summarize_topic_alignment(sim_matrix: np.ndarray) -> tuple[pd.DataFrame, dict[str, float]]:
+    """
+    Summarize topic alignment from a topic-topic similarity matrix.
+
+    Returns a per-topic dataframe and aggregate metrics.
+    """
+    if sim_matrix.ndim != 2:
+        raise ValueError("Expected a 2D similarity matrix.")
+
+    sorted_idx = np.argsort(sim_matrix, axis=1)[:, ::-1]
+    sorted_vals = np.take_along_axis(sim_matrix, sorted_idx, axis=1)
+
+    n_matches = sorted_vals.shape[1]
+    top1 = sorted_vals[:, 0]
+    top2_sum = sorted_vals[:, : min(2, n_matches)].sum(axis=1)
+    top3_sum = sorted_vals[:, : min(3, n_matches)].sum(axis=1)
+
+    per_topic_df = pd.DataFrame(
+        {
+            "topic_id": np.arange(sim_matrix.shape[0], dtype=int),
+            "top1": top1,
+            "top1_match_topic_id": sorted_idx[:, 0],
+            "top2_sum": top2_sum,
+            "top2_match_topic_ids": [idxs[: min(2, n_matches)].tolist() for idxs in sorted_idx],
+            "top3_sum": top3_sum,
+            "top3_match_topic_ids": [idxs[: min(3, n_matches)].tolist() for idxs in sorted_idx],
+            "mean_similarity": sim_matrix.mean(axis=1),
+        }
+    )
+
+    summary = {
+        "top1_mean": float(np.mean(top1)),
+        "top1_std": float(np.std(top1)),
+        "top2_mean": float(np.mean(top2_sum)),
+        "top2_std": float(np.std(top2_sum)),
+        "top3_mean": float(np.mean(top3_sum)),
+        "top3_std": float(np.std(top3_sum)),
+        "max_cosine_mean": float(np.mean(top1)),
+        "mean_cosine_mean": float(np.mean(sim_matrix)),
+    }
+
+    return per_topic_df, summary
+
+
+def summarize_stability_from_runs(
+    run_records: list[dict],
+    seeds: list[int],
+    n_topics: int,
+    vocab_index: dict[str, int],
+) -> dict[str, float]:
+    """
+    Compute stability metrics for a fixed-k collection of already-trained runs.
+
+    Each run record must contain:
+    - model
+    - doc_topic_df
+    """
+    if len(run_records) != len(seeds):
+        raise ValueError("run_records and seeds must have the same length.")
+
+    redundancy_scores = []
+    thetas = []
+    post_words_list = []
+    post_words_ref = None
+
+    for run in run_records:
+        model = run["model"]
+        W = _doc_topic_matrix_from_df(run["doc_topic_df"])
+        H = _topic_word_matrix_from_model(model, vocab_index)
+
+        H_prob = row_normalize(H)
+        S = cosine_similarity(H_prob)
+        np.fill_diagonal(S, np.nan)
+        redundancy_scores.append(
+            {
+                "max_sim": float(np.nanmax(S)),
+                "mean_sim": float(np.nanmean(S)),
+            }
+        )
+
+        theta = row_normalize(W)
+        post_words = row_normalize(H)
+
+        if post_words_ref is None:
+            post_words_ref = post_words.copy()
+            thetas.append(theta)
+            post_words_list.append(post_words)
+        else:
+            new_top_ordering = greedy_topic_alignment_cosine(post_words, post_words_ref)
+            theta_aligned = theta[:, new_top_ordering]
+            post_words_aligned = post_words[new_top_ordering, :]
+            thetas.append(theta_aligned)
+            post_words_list.append(post_words_aligned)
+
+    k_eff = n_topics - 1
+    omega1_vals = []
+    omega2_vals = []
+    omega1_sd_means = []
+    omega2_sd_means = []
+
+    for t in range(k_eff):
+        X_theta_t = np.column_stack([thetas[r][:, t] for r in range(len(seeds))])
+        o1, sd1 = omega_psych_via_r(X_theta_t)
+        omega1_vals.append(o1)
+        omega1_sd_means.append(sd1)
+
+        X_words_t = np.column_stack([post_words_list[r][t, :] for r in range(len(seeds))])
+        o2, sd2 = omega_psych_via_r(X_words_t)
+        omega2_vals.append(o2)
+        omega2_sd_means.append(sd2)
+
+    omega1 = float(np.mean(omega1_vals))
+    omega2 = float(np.mean(omega2_vals))
+    omega_val = (omega1 + omega2) / 2.0
+    omega_se = float(
+        np.mean([np.mean(omega1_sd_means), np.mean(omega2_sd_means)])
+        * np.sqrt((1.0 / k_eff) + (1.0 / k_eff))
+    )
+
+    avg_max_sim = float(np.mean([r["max_sim"] for r in redundancy_scores]))
+    avg_mean_sim = float(np.mean([r["mean_sim"] for r in redundancy_scores]))
+
+    return {
+        "omega_theta": omega1,
+        "omega_words": omega2,
+        "omega": omega_val,
+        "omega_se": omega_se,
+        "max_cosine": avg_max_sim,
+        "mean_cosine": avg_mean_sim,
+    }
+
+
 # -----------------------------
 # MAIN FUNCTION
 # -----------------------------
@@ -186,12 +346,7 @@ def compute_topic_stability(
     for n_topics in k_values:
         print(f"\n===== k = {n_topics} =====")
 
-        redundancy_scores = []
-        thetas = []
-        post_words_list = []
-        post_words_ref = None
-
-        run_artifacts_for_k = []
+        run_records_for_k = []
 
         for seed in seeds:
             run_config = replace(base_config, k=n_topics, seed=seed)
@@ -207,76 +362,25 @@ def compute_topic_stability(
                 "topic_words": run["topic_words"],
                 "doc_topic_df": run["doc_topic_df"],
             }
+            run_records_for_k.append(run)
 
-            model = run["model"]
-            W = _doc_topic_matrix_from_df(run["doc_topic_df"])
-            H = _topic_word_matrix_from_model(model, vocab_index)
-
-            H_prob = row_normalize(H)
-            S = cosine_similarity(H_prob)
-            np.fill_diagonal(S, np.nan)
-            redundancy_scores.append({
-                "max_sim": np.nanmax(S),
-                "mean_sim": np.nanmean(S)
-            })
-
-            theta = row_normalize(W)
-            post_words = row_normalize(H)
-
-            if post_words_ref is None:
-                post_words_ref = post_words.copy()
-                thetas.append(theta)
-                post_words_list.append(post_words)
-            else:
-                new_top_ordering = greedy_topic_alignment_cosine(post_words, post_words_ref)
-                theta_aligned = theta[:, new_top_ordering]
-                post_words_aligned = post_words[new_top_ordering, :]
-                thetas.append(theta_aligned)
-                post_words_list.append(post_words_aligned)
-
-        K_eff = n_topics - 1
-        omega1_vals = []
-        omega2_vals = []
-        omega1_sd_means = []
-        omega2_sd_means = []
-
-        for t in range(K_eff):
-            X_theta_t = np.column_stack([thetas[r][:, t] for r in range(len(seeds))])
-            o1, sd1 = omega_psych_via_r(X_theta_t)
-            omega1_vals.append(o1)
-            omega1_sd_means.append(sd1)
-
-            X_words_t = np.column_stack([post_words_list[r][t, :] for r in range(len(seeds))])
-            o2, sd2 = omega_psych_via_r(X_words_t)
-            omega2_vals.append(o2)
-            omega2_sd_means.append(sd2)
-
-        omega1 = float(np.mean(omega1_vals))
-        omega2 = float(np.mean(omega2_vals))
-        omega_val = (omega1 + omega2) / 2.0
-        omega_se = float(
-            np.mean([np.mean(omega1_sd_means), np.mean(omega2_sd_means)])
-            * np.sqrt((1.0 / K_eff) + (1.0 / K_eff))
+        stability_metrics = summarize_stability_from_runs(
+            run_records=run_records_for_k,
+            seeds=seeds,
+            n_topics=n_topics,
+            vocab_index=vocab_index,
         )
 
-        avg_max_sim = np.mean([r["max_sim"] for r in redundancy_scores])
-        avg_mean_sim = np.mean([r["mean_sim"] for r in redundancy_scores])
-
-        print(f"Omega (theta-side):      {omega1:.3f}")
-        print(f"Omega (words-side):      {omega2:.3f}")
-        print(f"Omega (avg):             {omega_val:.3f}")
-        print(f"Omega SE (repo-style):   {omega_se:.4f}")
-        print(f"Avg Max Topic Cosine:    {avg_max_sim:.3f}")
-        print(f"Avg Mean Topic Cosine:   {avg_mean_sim:.3f}")
+        print(f"Omega (theta-side):      {stability_metrics['omega_theta']:.3f}")
+        print(f"Omega (words-side):      {stability_metrics['omega_words']:.3f}")
+        print(f"Omega (avg):             {stability_metrics['omega']:.3f}")
+        print(f"Omega SE (repo-style):   {stability_metrics['omega_se']:.4f}")
+        print(f"Avg Max Topic Cosine:    {stability_metrics['max_cosine']:.3f}")
+        print(f"Avg Mean Topic Cosine:   {stability_metrics['mean_cosine']:.3f}")
 
         results.append({
             "k": n_topics,
-            "omega_theta": omega1,
-            "omega_words": omega2,
-            "omega": omega_val,
-            "omega_se": omega_se,
-            "max_cosine": float(avg_max_sim),
-            "mean_cosine": float(avg_mean_sim),
+            **stability_metrics,
         })
 
     return pd.DataFrame(results), artifacts
