@@ -1,0 +1,13 @@
+{
+  "rows": [
+    {
+      "k": 30,
+      "omega_theta": NaN,
+      "omega_words": NaN,
+      "omega": NaN,
+      "omega_se": NaN,
+      "max_cosine": 0.10072883161261079,
+      "mean_cosine": 0.014715049169525235
+    }
+  ]
+}

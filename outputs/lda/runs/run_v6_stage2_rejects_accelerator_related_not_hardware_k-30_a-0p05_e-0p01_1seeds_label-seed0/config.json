@@ -1,0 +1,39 @@
+{
+  "lda_config": {
+    "version_prefix": "v6",
+    "predictions_path": "/Users/noahfehr/dev/gpu_patent_thesis/data/analysis/runs/v6__full__two_stage__ts1__predictions.jsonl",
+    "stopwords_path": "/Users/noahfehr/dev/gpu_patent_thesis/code/topic_modeling/lda_pipeline/custom_stopwords.txt",
+    "base_data_dir": "/Users/noahfehr/dev/gpu_patent_thesis/data/claims_added",
+    "text_column": "claims",
+    "id_column": "lens_id",
+    "min_bigram_count": 20,
+    "k": 30,
+    "alpha": 0.05,
+    "eta": 0.01,
+    "min_df": 20,
+    "max_df": 0.18,
+    "seed": 0,
+    "iterations": 1500,
+    "top_words_n": 15
+  },
+  "label_config": {
+    "model": "gpt-5-mini",
+    "top_n_docs": 3,
+    "excerpt_chars": 1500,
+    "n_passes": 3,
+    "max_label_words": 6,
+    "max_explanation_sentences": 3
+  },
+  "seeds": [
+    0
+  ],
+  "label_seed": 0,
+  "run_name": "run_v6_stage2_rejects_accelerator_related_not_hardware_k-30_a-0p05_e-0p01_1seeds_label-seed0",
+  "metadata": {
+    "subset_name": "stage2_rejects_accelerator_related_not_hardware",
+    "docs_with_successful_predictions": 29481,
+    "docs_in_subset_before_token_filtering": 2705,
+    "docs_in_subset_after_token_filtering": 2705,
+    "subset_description": "All v6 patents that passed stage 1 but were rejected at stage 2 as not hardware related."
+  }
+}
